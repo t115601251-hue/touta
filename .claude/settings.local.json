@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Preview__preview_start",
+      "Bash(netstat -ano)",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "Bash(node -e ' *)",
+      "Bash(python -c \"import PIL; print\\('PIL', PIL.__version__\\)\")",
+      "Bash(magick --version)",
+      "Bash(node -e \"require\\('sharp'\\); console.log\\('sharp ok'\\)\")",
+      "Bash(python -c \"import numpy; print\\('numpy', numpy.__version__\\)\")",
+      "Bash(python -c \"import scipy; print\\('scipy', scipy.__version__\\)\")",
+      "Bash(command -v magick)",
+      "Bash(command -v convert)",
+      "Bash(command -v ffmpeg)",
+      "Bash(node -e \"try{require\\('sharp'\\);console.log\\('has sharp'\\)}catch\\(e\\){console.log\\('no sharp'\\)}\")",
+      "Bash(npm install *)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 4173,4188 -State Listen -ErrorAction SilentlyContinue | Select-Object LocalPort,OwningProcess | ForEach-Object { Write-Output \\(\"port {0} -> pid {1}\" -f $_.LocalPort, $_.OwningProcess\\); Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; Write-Output \"cleanup done\")"
+    ]
+  }
+}

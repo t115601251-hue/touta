@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>骰它 · 把人生交给随机数</title>
+
+  <!-- PWA：装到手机主屏幕、离线运行 -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#E6D9B8" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="骰它" />
+  <link rel="apple-touch-icon" href="icon-180.png" />
+  <link rel="icon" type="image/png" href="icon-192.png" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Noto+Serif+SC:wght@500;700;900&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = { theme: { extend: {
+      colors: {
+        parch:'#E6D9B8', 'parch-2':'#F0E8D2', ink:'#2E2A22', 'ink-soft':'#8C7F63',
+        bracket:'#4A4032', wax:'#9C3B2C', 'wax-deep':'#7E2E22', amber:'#E0962F',
+        teal:'#5FD6D0', gold:'#B69B66',
+        leather:'#5b3a24', 'leather-2':'#412816', wood:'#6b4528',
+      },
+      fontFamily: { roman:['"Cinzel"','serif'], song:['"Noto Serif SC"','"Cinzel"','serif'] },
+    } } }
+  </script>
+
+  <style>
+    html, body { height:100%; }
+    body {
+      background-color:#E6D9B8;
+      background-image:
+        radial-gradient(120% 90% at 50% 0%, rgba(255,248,228,.5), rgba(0,0,0,0) 55%),
+        radial-gradient(130% 120% at 50% 100%, rgba(110,80,40,.22), rgba(0,0,0,0) 60%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E");
+      overscroll-behavior:none; -webkit-tap-highlight-color:transparent;
+    }
+    .no-bar::-webkit-scrollbar{ display:none; } .no-bar{ -ms-overflow-style:none; scrollbar-width:none; }
+    .page-enter{ animation:pageIn .5s cubic-bezier(.22,1,.36,1); }
+    @keyframes pageIn{ from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+    /* 羊皮纸做旧斑渍（天命投掷更明显） */
+    #page-cast::before{ content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
+      background:
+        radial-gradient(55% 38% at 18% 14%, rgba(150,118,66,.16), transparent 60%),
+        radial-gradient(48% 34% at 86% 30%, rgba(120,88,48,.16), transparent 60%),
+        radial-gradient(45% 32% at 30% 88%, rgba(150,118,66,.14), transparent 60%),
+        radial-gradient(40% 28% at 78% 80%, rgba(110,80,42,.13), transparent 60%); }
+    #page-cast > *{ position:relative; z-index:1; }
+
+    .frame-corners{ pointer-events:none; position:absolute; inset:14px; z-index:30; --c:#B69B66; --a:42px; --t:2px; }
+    .frame-corners::before,.frame-corners::after,.frame-corners>i::before,.frame-corners>i::after{ content:""; position:absolute; width:var(--a); height:var(--a); }
+    .frame-corners::before{ top:0; left:0; border-top:var(--t) solid var(--c); border-left:var(--t) solid var(--c); }
+    .frame-corners::after{ top:0; right:0; border-top:var(--t) solid var(--c); border-right:var(--t) solid var(--c); }
+    .frame-corners>i::before{ bottom:0; left:0; border-bottom:var(--t) solid var(--c); border-left:var(--t) solid var(--c); }
+    .frame-corners>i::after{ bottom:0; right:0; border-bottom:var(--t) solid var(--c); border-right:var(--t) solid var(--c); }
+    .rule{ height:2px; background:linear-gradient(90deg,transparent,#B69B66,transparent); }
+
+    .mtab{ transition:all .25s ease; color:#8C7F63; position:relative; }
+    .mtab[data-active="true"]{ color:#7E2E22; }
+    .mtab[data-active="true"]::after{ content:""; position:absolute; left:50%; bottom:-7px; transform:translateX(-50%); width:18px; height:3px; border-radius:3px; background:#9C3B2C; }
+
+    .result-pop{ animation:pop .35s cubic-bezier(.2,1.45,.4,1); }
+    @keyframes pop{ from{opacity:0;transform:scale(.7)} to{opacity:1;transform:scale(1)} }
+    @keyframes toss{ 0%{transform:translateY(0) scale(1)} 32%{transform:translateY(-46px) scale(1.05)} 100%{transform:translateY(0) scale(1)} }
+    .toss{ animation:toss 1.05s cubic-bezier(.2,.7,.2,1); }
+
+    /* 统一进场动画（四种玩法切换都有） */
+    .prop-in{ animation:propIn .5s cubic-bezier(.2,1,.36,1); }
+    @keyframes propIn{ from{opacity:0; transform:scale(.72) translateY(12px)} to{opacity:1; transform:scale(1) translateY(0)} }
+
+    /* ===== D6 多骰 + 遮手 ===== */
+    .d6-stage{ position:relative; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding-bottom:52px; }
+    .d6-dice{ display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:18px; }
+    .d6-hide{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); z-index:6; display:flex; align-items:center; justify-content:center; width:52px; height:52px; border-radius:50%;
+      background:linear-gradient(180deg,#e6c98a,#caa55f); border:2px solid #9a783a; box-shadow:0 4px 10px -3px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.45);
+      font-family:"Noto Serif SC",serif; font-weight:700; font-size:13px; color:#5a3a1a; cursor:pointer; }
+    .d6-hide:active{ transform:translateX(-50%) translateY(1px); }
+    /* 隐藏 = 把骰子与数字模糊化（带渐变过渡） */
+    #d6Dice, #result-box{ transition:filter .45s ease, opacity .45s ease; }
+    #d6Dice.blurred{ filter:blur(22px); opacity:.78; }
+    #result-box.blurred{ filter:blur(15px); opacity:.72; }
+    .qty-bar{ display:flex; align-items:center; justify-content:center; gap:7px; margin-top:14px; }
+    .qty-btn{ width:32px; height:32px; border-radius:50%; font-family:"Cinzel",serif; font-weight:700; font-size:14px; color:#7a4f1c;
+      background:#f0e6cd; border:1.5px solid #c4a86a; box-shadow:0 2px 3px rgba(0,0,0,.15); transition:all .2s; }
+    .qty-btn[data-on="true"]{ background:#9c3b2c; color:#fff; border-color:#7e2e22; transform:translateY(-1px); }
+
+    /* ===== 金币：真实金币图贴 3D 正反两面 ===== */
+    .coin-scene{ perspective:900px; width:160px; height:160px; }
+    .coin{ position:relative; width:100%; height:100%; transform-style:preserve-3d; will-change:transform; }
+    .coin-face{ position:absolute; inset:0; border-radius:50%; backface-visibility:hidden; overflow:hidden;
+      background-size:108%; background-position:center; background-repeat:no-repeat;
+      box-shadow: inset 0 0 0 4px rgba(168,118,28,.85), inset 0 -7px 13px rgba(80,48,8,.4),
+        inset 0 6px 12px rgba(255,246,206,.35), 0 14px 24px -8px rgba(60,40,10,.6); }
+    .coin-front{ background-image:url('assets/skins/coin_front.webp'); }
+    .coin-back{ background-image:url('assets/skins/coin_back.webp'); transform:rotateY(180deg); }
+
+    /* ===== D6：3D 木骰（更圆润） ===== */
+    .cube-scene{ perspective:760px; width:118px; height:118px; }
+    .cube{ position:relative; width:100%; height:100%; transform-style:preserve-3d; transform:rotateX(-20deg) rotateY(20deg); will-change:transform; }
+    .cube-face{ position:absolute; width:118px; height:118px; border-radius:14px; border:2px solid #6c4a24;
+      box-shadow:inset 0 0 24px rgba(75,42,8,.5); display:grid; grid-template-columns:repeat(3,1fr); place-items:center; padding:16px;
+      background:repeating-linear-gradient(118deg, rgba(90,55,15,.13) 0 3px, transparent 3px 10px), linear-gradient(145deg,#cda572,#9c6f3c); }
+    .cube-core{ position:absolute; left:0; top:0; width:118px; height:118px; background:linear-gradient(145deg,#6b4626,#42270e); }
+    .pip{ width:16px; height:16px; border-radius:50%; background:radial-gradient(circle at 40% 35%, #5a3a14, #281806); box-shadow:inset 0 2px 3px rgba(0,0,0,.65), 0 1px 0 rgba(255,230,180,.25); }
+    .cf-front{transform:translateZ(59px)} .cf-back{transform:rotateY(180deg) translateZ(59px)}
+    .cf-right{transform:rotateY(90deg) translateZ(59px)} .cf-left{transform:rotateY(-90deg) translateZ(59px)}
+    .cf-top{transform:rotateX(90deg) translateZ(59px)} .cf-bottom{transform:rotateX(-90deg) translateZ(59px)}
+
+    /* ===== D20：真 3D 二十面体 ===== */
+    .d20-stage{ position:relative; perspective:760px; width:190px; height:190px; display:flex; align-items:center; justify-content:center; }
+    .d20-ico{ position:relative; width:0; height:0; transform-style:preserve-3d; will-change:transform; }
+    .d20-face{ position:absolute; left:0; top:0; transform-origin:0 0; backface-visibility:hidden;
+      display:flex; align-items:center; justify-content:center; }
+    .d20-face .fnum{ font-family:"Cinzel",serif; font-weight:700; font-size:20px; color:#2c2a22; text-shadow:0 1px 0 rgba(255,255,255,.5); }
+    .d20-face.lit{ filter:brightness(1.15); }
+    .d20-face.lit .fnum{ color:#0c6b66; text-shadow:0 0 10px rgba(95,214,208,.95), 0 0 18px rgba(95,214,208,.6); }
+
+    /* ===== 求签筒：代码绘制(SVG) + 摇动 ===== */
+    .tube-svg{ width:200px; height:auto; transform-origin:50% 86%; }
+    .shake-tube{ animation:tubeShake .62s ease-in-out; }
+    @keyframes tubeShake{ 0%,100%{transform:rotate(0)} 16%{transform:rotate(-7deg)} 36%{transform:rotate(6deg)} 56%{transform:rotate(-4deg)} 78%{transform:rotate(2deg)} }
+    /* 锥形签：左细右粗，从签筒由小变大飞到下面，点击翻面揭晓 */
+    .tube-img{ width:128px; height:auto; transform-origin:50% 86%; }
+    .luck-col{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+    .luck-stick{ position:relative; width:262px; height:82px; cursor:pointer; filter:drop-shadow(0 7px 9px rgba(80,12,8,.4)); }
+    .stick-img{ width:100%; height:100%; object-fit:contain; }
+    .luck-tip{ font-family:"Noto Serif SC",serif; font-weight:700; font-size:.82rem; color:#9c3b2c; letter-spacing:.06em; animation:hintPulse 1.3s ease-in-out infinite; }
+    @keyframes hintPulse{ 0%,100%{opacity:.45} 50%{opacity:1} }
+    .pct-chip{ display:none; padding:3px 20px; border-radius:10px; border:1px solid #f0d27a;
+      background:linear-gradient(#7a2018,#5a120c); color:#f8db84; font-family:"Noto Serif SC",serif; font-weight:900; font-size:1.5rem;
+      box-shadow:0 3px 7px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,235,170,.35); animation:chipPop .4s cubic-bezier(.2,1.5,.4,1); }
+    @keyframes chipPop{ from{opacity:0; transform:scale(.5)} to{opacity:1; transform:scale(1)} }
+
+    /* ===== 冒险背包：皮革 ===== */
+    .leather{ background-color:#4a2f1b;
+      background-image:
+        radial-gradient(circle at 28% 18%, rgba(255,230,190,.07), transparent 42%),
+        radial-gradient(circle at 75% 82%, rgba(0,0,0,.32), transparent 55%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.14'/%3E%3C/svg%3E");
+      box-shadow:inset 0 0 60px rgba(0,0,0,.5); }
+    .leather-card{ position:relative; border-radius:14px; background:linear-gradient(160deg,#6e4828,#46291557 70%,#3c2413);
+      background-color:#5b3a24; border:1px solid #2f1c0d; box-shadow:inset 0 1px 0 rgba(255,225,180,.12), 0 5px 12px -5px rgba(0,0,0,.55); }
+    .leather-card::after{ content:""; position:absolute; inset:6px; border-radius:9px; border:2px dashed rgba(214,182,122,.32); pointer-events:none; }
+    .leather-card.on{ box-shadow:inset 0 0 0 2px rgba(230,184,100,.9), 0 6px 14px -5px rgba(0,0,0,.6); }
+    .leather-card.on::after{ border-color:rgba(230,184,100,.7); }
+    .slot{ --b:#caa572; aspect-ratio:1; border-radius:6px;
+      background:
+        linear-gradient(var(--b),var(--b)) 0 0/16px 3px no-repeat, linear-gradient(var(--b),var(--b)) 0 0/3px 16px no-repeat,
+        linear-gradient(var(--b),var(--b)) 100% 0/16px 3px no-repeat, linear-gradient(var(--b),var(--b)) 100% 0/3px 16px no-repeat,
+        linear-gradient(var(--b),var(--b)) 0 100%/16px 3px no-repeat, linear-gradient(var(--b),var(--b)) 0 100%/3px 16px no-repeat,
+        linear-gradient(var(--b),var(--b)) 100% 100%/16px 3px no-repeat, linear-gradient(var(--b),var(--b)) 100% 100%/3px 16px no-repeat,
+        rgba(0,0,0,.22);
+      display:flex; align-items:center; justify-content:center; }
+    .mini{ width:38px; height:38px; flex:none; }
+    .mini-coin{ border-radius:50%; background:radial-gradient(circle at 38% 30%, #fff2c0, #dca846 55%, #946218); box-shadow:inset 0 0 0 3px #b8801c, inset 0 -2px 4px rgba(80,48,8,.5); }
+    .gem{ width:34px; height:34px; transform:rotate(45deg); border-radius:6px; background:linear-gradient(135deg,#b07be0,#6a32c0); box-shadow:0 0 10px rgba(150,90,230,.7), inset 0 0 6px rgba(255,255,255,.5); }
+
+    /* ===== 登记处：木架 + 奖杯 ===== */
+    .shelf{ height:20px; border-radius:4px; margin-top:-6px;
+      background:repeating-linear-gradient(90deg, rgba(40,22,6,.25) 0 1px, transparent 1px 16px), linear-gradient(#8a5a30,#4a2f19);
+      box-shadow:0 8px 12px -5px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,220,170,.18); }
+    .shelf-row{ display:grid; grid-template-columns:1fr 1fr; gap:6px; align-items:end; }
+    .troph-cell{ display:flex; flex-direction:column; align-items:center; padding-bottom:2px; }
+    .trophy{ width:100px; height:auto; }
+    .troph-lock{ filter:brightness(0) opacity(.5); }
+    .troph-name{ margin-top:6px; font-weight:700; font-size:.8rem; }
+    .troph-name.lock{ color:#8C7F63; } .troph-hint{ font-size:10px; color:#9a8f73; text-align:center; line-height:1.3; margin-top:2px; }
+    /* ===== 成就墙（分类网格）===== */
+    .ach-cat{ display:flex; justify-content:space-between; align-items:center; margin:18px 0 9px; padding-bottom:5px; border-bottom:1px solid #d8c69e;
+      font-family:"Noto Serif SC",serif; font-weight:700; font-size:1rem; color:#5a3a1a; }
+    .ach-cat-n{ font-family:"Cinzel",serif; font-size:.78rem; color:#9c8a5c; }
+    .ach-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+    .ach-cell{ display:flex; flex-direction:column; align-items:center; text-align:center; padding:10px 6px 8px; border-radius:12px;
+      background:rgba(255,250,235,.45); border:1px solid #e2d6b4; }
+    .ach-cell.on{ background:linear-gradient(#fbf3da,#f2e4be); border-color:#d8b86a; box-shadow:0 3px 9px -5px rgba(150,100,20,.45); }
+    .ach-grid .trophy{ width:60px; }
+    .ach-name{ margin-top:4px; font-family:"Noto Serif SC",serif; font-weight:700; font-size:.82rem; color:#3a2c14; }
+    .ach-cell:not(.on) .ach-name{ color:#a3936c; }
+    .ach-cond{ margin-top:2px; font-size:.66rem; line-height:1.3; color:#8c7c52; }
+    /* ===== 数据档案 ===== */
+    .stats-cat{ margin:18px 0 9px; font-family:"Noto Serif SC",serif; font-weight:700; font-size:1.05rem; color:#e7c889; }
+    .stats-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+    .stat-card{ border-radius:12px; padding:13px 15px; background:linear-gradient(160deg,#6e4828,#3c2413); border:1px solid #2f1c0d; box-shadow:inset 0 1px 0 rgba(255,225,180,.1), 0 4px 10px -5px rgba(0,0,0,.5); }
+    .stat-num{ font-family:"Cinzel",serif; font-weight:700; font-size:1.6rem; line-height:1.1; color:#f8db84; }
+    .stat-lbl{ margin-top:3px; font-size:.72rem; color:#c9ad7e; }
+    /* ===== 升级提示 ===== */
+    .lvl-toast{ position:fixed; left:50%; top:16%; transform:translate(-50%,-22px); z-index:66; opacity:0; pointer-events:none;
+      transition:opacity .35s ease, transform .4s cubic-bezier(.2,1.5,.4,1);
+      background:linear-gradient(#7a2018,#5a120c); color:#f8db84; border:1px solid #f0d27a; border-radius:16px; padding:11px 26px; text-align:center;
+      box-shadow:0 10px 28px -6px rgba(0,0,0,.55); }
+    .lvl-toast.show{ opacity:1; transform:translate(-50%,0); }
+    .lvl-toast .lt-lv{ font-family:"Cinzel",serif; font-weight:700; font-size:1.3rem; letter-spacing:.04em; }
+    .lvl-toast .lt-ti{ font-family:"Noto Serif SC",serif; font-weight:900; font-size:.95rem; margin-top:2px; }
+
+    .btn-stone{ background:linear-gradient(180deg,#5b5247,#403930); border:1px solid #2c271f;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.18), inset 0 -3px 6px rgba(0,0,0,.35), 0 6px 16px -8px rgba(0,0,0,.5); transition:transform .08s ease, box-shadow .08s ease; }
+    .btn-stone:active{ transform:translateY(2px); box-shadow:inset 0 2px 6px rgba(0,0,0,.5); }
+
+    .nav-item .nav-ico{ transition:all .25s ease; color:#6f6552; } .nav-item .nav-txt{ transition:all .25s ease; color:#8C7F63; }
+    .nav-item[data-active="true"] .nav-ico{ color:#7E2E22; transform:translateY(-2px); } .nav-item[data-active="true"] .nav-txt{ color:#7E2E22; font-weight:700; }
+
+    /* ===== 成就解锁·羊皮卷轴 ===== */
+    .ach-pop{ position:fixed; inset:0; z-index:60; display:flex; justify-content:center; align-items:flex-start; padding-top:20vh;
+      background:rgba(30,22,10,0); pointer-events:none; visibility:hidden; transition:background .4s ease, visibility .4s ease; }
+    .ach-pop.show{ background:rgba(30,22,10,.45); pointer-events:auto; visibility:visible; }
+
+    /* 更换皮肤弹窗 */
+    .change-btn{ font-family:"Noto Serif SC",serif; font-size:13px; font-weight:700; color:#3a2413; padding:6px 14px; border-radius:8px;
+      background:linear-gradient(#e6c98a,#caa55f); border:1px solid #9a783a; box-shadow:0 2px 4px rgba(0,0,0,.3); }
+    .change-btn:active{ transform:translateY(1px); }
+    .skin-modal{ position:fixed; inset:0; z-index:70; display:flex; align-items:center; justify-content:center; padding:24px;
+      background:rgba(20,12,4,0); visibility:hidden; opacity:0; transition:opacity .3s ease, visibility .3s ease; }
+    .skin-modal.show{ visibility:visible; opacity:1; background:rgba(20,12,4,.6); }
+    .skin-sheet{ width:min(92%,360px); border-radius:16px; padding:18px 18px 20px; transform:translateY(18px); transition:transform .3s ease;
+      background:#5b3a24; background-image:radial-gradient(circle at 30% 15%, rgba(255,230,190,.08), transparent 45%);
+      border:1px solid #2f1c0d; box-shadow:0 16px 40px -10px rgba(0,0,0,.7); }
+    .skin-modal.show .skin-sheet{ transform:translateY(0); }
+    .scroll-wrap{ width:min(86%,360px); transform:translateY(-160%); transition:transform .55s cubic-bezier(.2,.8,.2,1); }
+    .ach-pop.show .scroll-wrap{ transform:translateY(0); }
+    .scroll-rod{ height:20px; border-radius:10px; margin:0 -8px;
+      background:linear-gradient(#caa05a,#7c4f24); box-shadow:0 3px 6px rgba(0,0,0,.4), inset 0 2px 0 rgba(255,235,190,.5); position:relative; z-index:2; }
+    .scroll-rod::before,.scroll-rod::after{ content:""; position:absolute; top:50%; transform:translateY(-50%); width:16px; height:26px; border-radius:6px; background:linear-gradient(#d9b878,#8a5a2c); box-shadow:0 2px 4px rgba(0,0,0,.4); }
+    .scroll-rod::before{ left:-10px } .scroll-rod::after{ right:-10px }
+    .scroll-body{ overflow:hidden; max-height:0; transition:max-height .6s ease .2s;
+      background:linear-gradient(#f3ead0,#e6d6ad); border-left:2px solid #c9b079; border-right:2px solid #c9b079; }
+    .ach-pop.show .scroll-body{ max-height:260px; }
+    .scroll-inner{ padding:22px 22px 26px; text-align:center; }
+  </style>
+</head>
+
+<body class="font-song text-ink antialiased">
+  <div class="app-frame relative mx-auto flex min-h-[100dvh] max-w-[440px] flex-col overflow-hidden">
+    <div class="frame-corners"><i></i></div>
+
+    <main class="flex-1 overflow-y-auto px-7 pb-28">
+
+      <!-- ===== 天命投掷 ===== -->
+      <section id="page-cast" class="page-enter relative flex min-h-[calc(100dvh-7rem)] flex-col pt-12">
+        <header class="text-center">
+          <h1 class="font-song text-4xl font-black tracking-[.15em] text-ink">天命投掷</h1>
+          <div class="rule mx-auto mt-4 w-40"></div>
+        </header>
+
+        <div class="no-bar mt-7 flex items-center justify-center gap-7 overflow-x-auto text-lg font-bold">
+          <button class="mtab shrink-0" data-method="coin" data-active="true">抛硬币</button>
+          <button class="mtab shrink-0" data-method="d6" data-active="false">D6</button>
+          <button class="mtab shrink-0" data-method="d20" data-active="false">D20</button>
+          <button class="mtab shrink-0" data-method="luck" data-active="false">气运</button>
+        </div>
+
+        <!-- D6 骰子数量 1-6（仅 D6 显示） -->
+        <div id="d6-qty" class="qty-bar hidden">
+          <span class="mr-1 text-xs text-ink-soft">骰子数量</span>
+          <button class="qty-btn" data-q="1" data-on="true">1</button>
+          <button class="qty-btn" data-q="2" data-on="false">2</button>
+          <button class="qty-btn" data-q="3" data-on="false">3</button>
+          <button class="qty-btn" data-q="4" data-on="false">4</button>
+          <button class="qty-btn" data-q="5" data-on="false">5</button>
+          <button class="qty-btn" data-q="6" data-on="false">6</button>
+        </div>
+
+        <div class="flex flex-1 flex-col items-center justify-center">
+          <div id="stage-props" class="relative flex h-[244px] w-full items-center justify-center">
+            <!-- 硬币 -->
+            <div id="prop-coin" class="prop flex items-center justify-center">
+              <div class="coin-scene" id="coinScene"><div class="coin" id="coinEl">
+                <div class="coin-face coin-front"></div>
+                <div class="coin-face coin-back"></div>
+              </div></div>
+            </div>
+            <!-- D6：可选 1-6 颗骰子 + 遮手 -->
+            <div id="prop-d6" class="prop hidden" style="width:100%;height:100%">
+              <div class="d6-stage">
+                <div id="d6Dice" class="d6-dice"></div>
+                <button id="d6HideBtn" class="d6-hide">隐藏</button>
+              </div>
+            </div>
+            <!-- D20 真3D -->
+            <div id="prop-d20" class="prop hidden"><div class="d20-stage"><div class="d20-ico" id="d20Ico"></div></div></div>
+            <!-- 求签筒（真实图） -->
+            <div id="prop-luck" class="prop hidden">
+              <img id="tubeSvg" class="tube-img" src="assets/skins/tube.webp" alt="求签筒" onerror="this.style.display='none'" />
+            </div>
+          </div>
+          <p id="stage-hint" class="mt-5 text-sm tracking-wide text-ink-soft">抛硬币 · 正面 or 反面</p>
+        </div>
+
+        <div id="luck-input-wrap" class="mx-auto mb-3 hidden w-full max-w-[320px]">
+          <input id="luck-input" type="text" maxlength="20" placeholder="输入你想问的一件事…"
+            class="w-full rounded-xl border border-gold/60 bg-parch-2/70 px-4 py-3 text-center text-sm text-ink placeholder:text-ink-soft focus:border-wax focus:outline-none" />
+        </div>
+
+        <div id="result-box" class="mb-6 flex min-h-[3rem] items-center justify-center text-center">
+          <p class="font-roman text-xl tracking-wide text-ink-soft">交付你的命运</p>
+        </div>
+
+        <button id="btn-roll" class="btn-stone mx-auto mb-2 block w-full max-w-[320px] rounded-xl py-4 text-center font-roman text-2xl font-bold tracking-[.25em] text-parch-2 transition">ROLL</button>
+      </section>
+
+      <!-- ===== 冒险背包 ===== -->
+      <section id="page-bag" class="page-enter leather hidden -mx-7 px-7 pt-12" style="min-height:calc(100dvh - 7rem)">
+        <header class="text-center">
+          <p class="font-roman text-sm tracking-[.4em]" style="color:#d6b67a">ARCHIVE</p>
+          <h2 class="mt-1 font-song text-4xl font-black tracking-[.15em]" style="color:#f0e3c4">数据档案</h2>
+          <div class="rule mx-auto mt-4 w-40"></div>
+        </header>
+        <div id="stats-wrap" class="pb-4"></div>
+      </section>
+
+      <!-- ===== 登记处 ===== -->
+      <section id="page-home" class="page-enter hidden pt-12">
+        <header class="text-center">
+          <h2 class="flex items-baseline justify-center gap-4">
+            <span id="home-lv" class="font-roman text-4xl font-bold text-ink">LV.1</span>
+            <span id="home-title" class="font-song text-3xl font-black tracking-wide">纠结怪完全体</span>
+          </h2>
+          <p id="home-desc" class="mt-2 text-xs tracking-wide text-ink-soft">点外卖都要想半小时的重度内耗野生人类</p>
+        </header>
+        <div class="mx-auto mt-6 max-w-[340px]">
+          <div style="position:relative;height:24px;border-radius:999px;background:linear-gradient(180deg,#f3ecd9,#e2d6b8);border:2px solid #c4b288;box-shadow:inset 0 2px 5px rgba(0,0,0,.18);overflow:hidden">
+            <div id="home-xp-bar" style="height:100%;border-radius:999px;background:linear-gradient(180deg,#f6c45e,#df8e2c);box-shadow:inset 0 -4px 8px rgba(150,75,10,.5);width:0%"></div>
+          </div>
+          <p id="home-xp" class="mt-2 text-right font-roman text-xs text-ink-soft">0 / 100 XP</p>
+        </div>
+
+        <div class="mb-3 mt-10 flex items-baseline justify-between">
+          <h3 class="font-song text-2xl font-black tracking-widest">成就殿堂</h3>
+          <span id="ach-total" class="font-roman text-sm text-ink-soft">0 / 62</span>
+        </div>
+        <div id="trophy-wall" class="flex flex-col"></div>
+        <div class="h-6"></div>
+      </section>
+
+    </main>
+
+    <nav class="absolute bottom-0 left-0 right-0 z-20 border-t border-gold/50 bg-parch-2/90 backdrop-blur-md">
+      <div class="mx-auto grid max-w-[440px] grid-cols-3 px-4 py-3">
+        <button class="nav-item flex flex-col items-center gap-1" data-page="page-cast" data-active="true">
+          <svg class="nav-ico h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="16" cy="8" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="8" cy="16" r="1.2" fill="currentColor"/><circle cx="16" cy="16" r="1.2" fill="currentColor"/></svg>
+          <span class="nav-txt text-[11px] tracking-wide">天命投掷</span>
+        </button>
+        <button class="nav-item flex flex-col items-center gap-1" data-page="page-bag" data-active="false">
+          <svg class="nav-ico h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0112 0v10a2 2 0 01-2 2H8a2 2 0 01-2-2V9z"/><path d="M9 9V7a3 3 0 016 0v2"/><path d="M6 13h12"/></svg>
+          <span class="nav-txt text-[11px] tracking-wide">数据档案</span>
+        </button>
+        <button class="nav-item flex flex-col items-center gap-1" data-page="page-home" data-active="false">
+          <svg class="nav-ico h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>
+          <span class="nav-txt text-[11px] tracking-wide">登记处</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- 成就弹窗 -->
+  <div id="ach-pop" class="ach-pop">
+    <div class="scroll-wrap">
+      <div class="scroll-rod"></div>
+      <div class="scroll-body"><div class="scroll-inner">
+        <p class="font-roman tracking-[.3em]" style="color:#9c3b2c">ACHIEVEMENT</p>
+        <p class="mt-1 font-song text-sm tracking-widest text-ink-soft">成就解锁</p>
+        <p id="ach-name" class="mt-3 font-song text-2xl font-black text-ink">【赌徒谬论】</p>
+        <p class="mt-2 text-xs text-ink-soft">隐藏成就已点亮 · 登记处可查看</p>
+        <button id="ach-close" class="mt-5 rounded-xl bg-wax px-7 py-2 font-song font-bold tracking-widest text-parch-2 shadow-soft">收 下</button>
+      </div></div>
+      <div class="scroll-rod"></div>
+    </div>
+  </div>
+
+  <!-- 更换皮肤弹窗 -->
+  <div id="skin-modal" class="skin-modal">
+    <div class="skin-sheet">
+      <div class="mb-4 flex items-center justify-between">
+        <h4 id="skin-modal-title" class="font-song text-lg font-bold" style="color:#f2e6c8">更换皮肤</h4>
+        <button id="skin-modal-close" class="flex h-8 w-8 items-center justify-center rounded-full" style="background:rgba(0,0,0,.3);color:#e7c889">✕</button>
+      </div>
+      <div id="skin-modal-grid" class="grid grid-cols-3 gap-3"></div>
+      <p class="mt-4 text-center text-xs" style="color:#c9ad7e">暂无其他皮肤，敬请期待</p>
+    </div>
+  </div>
+
+  <!-- 升级提示 -->
+  <div id="lvl-toast" class="lvl-toast"><div class="lt-lv">LV.2 升级！</div><div class="lt-ti">【头衔】</div></div>
+
+  <script>
+  /* ====================== 等级头衔 ====================== */
+  const LEVELS=[
+    {min:1,  title:'纠结怪完全体',   desc:'点外卖都要想半小时的重度内耗野生人类'},
+    {min:10, title:'天命的赛博老奴', desc:'已放弃挣扎，把人生交给随机数的底层工具人'},
+    {min:20, title:'纯血玄学控分大师', desc:'丢骰子前必须洗手、坚信意念能改概率的魔术师'},
+    {min:30, title:'大成功/大失败批发商', desc:'走运和倒霉之间反复横跳的薛定谔非酋'},
+    {min:40, title:'欧非双修の量子佛', desc:'一秒欧皇一秒非酋，已悟「随机即空」'},
+    {min:50, title:'野生因果律武器', desc:'因果律在手，强行逆转生活线'},
+    {min:60, title:'概率论叛逃者',   desc:'已脱离大数定律管辖，概率对我无效'},
+    {min:70, title:'命运收银员',     desc:'天命明码标价，扫码即出，概不退换'},
+    {min:80, title:'玄学界扛把子',   desc:'概率给我递烟，欧皇喊我一声哥'},
+    {min:90, title:'上帝不掷骰子，但我掷', desc:'概率学已死，超越天命'},
+    {min:100,title:'天命甲方爸爸',   desc:'随机数是我外包的，命运得按我需求改稿'},
+  ];
+  function titleForLevel(L){ let t=LEVELS[0]; for(const x of LEVELS){ if(L>=x.min) t=x; } return t; }
+  function xpForLevel(L){ return 50*L*(L-1); }              // 升到 L 级所需累计 XP
+  function levelFromXp(xp){ let L=1; while(L<100 && xp>=xpForLevel(L+1)) L++; return L; }
+
+  /* ====================== 62 成就定义 ====================== */
+  const ACHIEVEMENTS=[
+    // 🪙 抛硬币
+    {key:'a_coin1',cat:'coin',name:'纠结终结者',cond:'第一次用抛硬币做决定',f:s=>s.coin_total>=1},
+    {key:'a_heads100',cat:'coin',name:'正经人',cond:'累计掷出 100 次正面',f:s=>s.heads>=100},
+    {key:'a_tails100',cat:'coin',name:'反骨仔',cond:'累计掷出 100 次反面',f:s=>s.tails>=100},
+    {key:'a_face5',cat:'coin',name:'一面之缘',cond:'连续 5 次同一面',f:s=>s.coin_max_streak>=5},
+    {key:'a_face10',cat:'coin',name:'天选硬币·十连',cond:'连续 10 次同一面',f:s=>s.coin_max_streak>=10},
+    {key:'a_5050',cat:'coin',name:'五五开人生',cond:'正反各≥100次且接近 1:1',f:s=>s.heads>=100&&s.tails>=100&&Math.max(s.heads,s.tails)<=Math.min(s.heads,s.tails)*1.1},
+    {key:'a_coin500',cat:'coin',name:'硬币收藏家',cond:'抛硬币累计 500 次',f:s=>s.coin_total>=500},
+    {key:'a_coin1000',cat:'coin',name:'一锤定音',cond:'抛硬币累计 1,000 次',f:s=>s.coin_total>=1000},
+    {key:'a_cointoday20',cat:'coin',name:'今天就靠它',cond:'单日抛硬币 20 次',f:s=>s.coin_today>=20},
+    {key:'a_balance',cat:'coin',name:'运气守恒定律',cond:'正反各≥50且次数差≤1',f:s=>s.heads>=50&&s.tails>=50&&Math.abs(s.heads-s.tails)<=1},
+    // 🎲 D6
+    {key:'a_666',cat:'d6',name:'赌徒谬论',cond:'单颗连续 3 次掷出 6',f:s=>s.d6_six_max_streak>=3},
+    {key:'a_d6one3',cat:'d6',name:'霉运三连',cond:'单颗连续 3 次掷出 1',f:s=>s.d6_one_max_streak>=3},
+    {key:'a_daji6',cat:'d6',name:'六六大顺',cond:'一次 6 颗全是 6',f:s=>s.ev_daji6},
+    {key:'a_snake',cat:'d6',name:'蛇眼',cond:'一次 2 颗及以上全是 1',f:s=>s.ev_snake},
+    {key:'a_baozi',cat:'d6',name:'豹子',cond:'3 颗及以上点数全相同',f:s=>s.ev_baozi},
+    {key:'a_full34',cat:'d6',name:'满堂彩',cond:'一次 6 颗总和 ≥ 34',f:s=>s.ev_full34},
+    {key:'a_d6sum1000',cat:'d6',name:'点数收割机',cond:'D6 累计点数和达 1,000',f:s=>s.d6_sum_total>=1000},
+    {key:'a_six100',cat:'d6',name:'六亲不认',cond:'累计掷出 100 个 6',f:s=>s.d6_six_count>=100},
+    {key:'a_d6_500',cat:'d6',name:'骰子是圆的?',cond:'D6 累计投掷 500 次',f:s=>s.d6_total>=500},
+    {key:'a_hide',cat:'d6',name:'遮羞布',cond:'用了一次「隐藏（模糊）」',f:s=>s.d6_hide_used},
+    {key:'a_use6',cat:'d6',name:'人多力量大',cond:'把骰子加到 6 颗投一次',f:s=>s.d6_used6},
+    // 🎯 D20
+    {key:'a_d20_1',cat:'d20',name:'非酋的叹息',cond:'D20 掷出 1',f:s=>s.d20_ones>=1},
+    {key:'a_d20_20',cat:'d20',name:'大成功！',cond:'D20 掷出 20',f:s=>s.d20_twenties>=1},
+    {key:'a_d20one2',cat:'d20',name:'天崩开局',cond:'连续 2 次掷出 1',f:s=>s.d20_one_max_streak>=2},
+    {key:'a_d20twenty2',cat:'d20',name:'天选之子',cond:'连续 2 次掷出 20',f:s=>s.d20_twenty_max_streak>=2},
+    {key:'a_rescue',cat:'d20',name:'绝处逢生',cond:'紧挨着先 1 后 20',f:s=>s.ev_rescue},
+    {key:'a_collect20',cat:'d20',name:'二十面の主',cond:'1–20 每个数字都掷出过',f:s=>s.d20_seen.length>=20},
+    {key:'a_ones10',cat:'d20',name:'深渊凝视',cond:'累计掷出 10 次 1',f:s=>s.d20_ones>=10},
+    {key:'a_twenties10',cat:'d20',name:'大成功批发',cond:'累计掷出 10 次 20',f:s=>s.d20_twenties>=10},
+    {key:'a_icefire',cat:'d20',name:'冰火两重天',cond:'1 和 20 各掷出 ≥10 次',f:s=>s.d20_ones>=10&&s.d20_twenties>=10},
+    {key:'a_d20_300',cat:'d20',name:'二十面の常客',cond:'D20 累计投掷 300 次',f:s=>s.d20_total>=300},
+    // 🎋 气运
+    {key:'a_luck100',cat:'luck',name:'因果律暴击',cond:'气运摇出 100%',f:s=>s.ev_luck100},
+    {key:'a_luck1',cat:'luck',name:'天都塌了',cond:'气运摇出 1%',f:s=>s.ev_luck1},
+    {key:'a_luck50',cat:'luck',name:'中庸之道',cond:'气运正好摇出 50%',f:s=>s.ev_luck50},
+    {key:'a_luck100total',cat:'luck',name:'遇事不决量子力学',cond:'气运累计 100 次',f:s=>s.luck_total>=100},
+    {key:'a_luckq10',cat:'luck',name:'优柔寡断本断',cond:'同一天问了 10 件不同的事',f:s=>s.luck_q_max>=10},
+    {key:'a_blocked5',cat:'luck',name:'死心眼',cond:'被「同日同事」拦下 5 次',f:s=>s.luck_blocked>=5},
+    {key:'a_high5',cat:'luck',name:'天选打工人',cond:'累计摇出 5 次 ≥90%',f:s=>s.luck_high_count>=5},
+    {key:'a_low5',cat:'luck',name:'倒霉蛋认证',cond:'累计摇出 5 次 ≤10%',f:s=>s.luck_low_count>=5},
+    {key:'a_luck200',cat:'luck',name:'许愿池常客',cond:'气运累计 200 次',f:s=>s.luck_total>=200},
+    {key:'a_extreme',cat:'luck',name:'极限拉扯',cond:'同一天既≥90% 又≤10%',f:s=>s.ev_extreme},
+    // 📈 等级 & 收集
+    {key:'a_lv5',cat:'meta',name:'初出茅庐',cond:'达到 LV.5',f:(s,lv)=>lv>=5},
+    {key:'a_lv10',cat:'meta',name:'脱离新手村',cond:'达到 LV.10',f:(s,lv)=>lv>=10},
+    {key:'a_lv20',cat:'meta',name:'渐入佳境',cond:'达到 LV.20',f:(s,lv)=>lv>=20},
+    {key:'a_lv30',cat:'meta',name:'小有名气',cond:'达到 LV.30',f:(s,lv)=>lv>=30},
+    {key:'a_lv50',cat:'meta',name:'中流砥柱',cond:'达到 LV.50',f:(s,lv)=>lv>=50},
+    {key:'a_lv90',cat:'meta',name:'登峰造极前夜',cond:'达到 LV.90',f:(s,lv)=>lv>=90},
+    {key:'a_lv100',cat:'meta',name:'天命甲方爸爸',cond:'达到 LV.100（满级）',f:(s,lv)=>lv>=100},
+    {key:'a_ach10',cat:'meta',name:'成就萌新',cond:'解锁 10 个成就',f:(s,lv,ac)=>ac>=10},
+    {key:'a_ach25',cat:'meta',name:'成就猎人',cond:'解锁 25 个成就',f:(s,lv,ac)=>ac>=25},
+    {key:'a_achall',cat:'meta',name:'全图鉴大佬',cond:'解锁全部成就',f:(s,lv,ac)=>ac>=61},
+    // ⏰ 习惯 · 里程碑
+    {key:'a_rolls100',cat:'habit',name:'无情的无理取闹',cond:'累计投掷 100 次',f:s=>s.total_rolls>=100},
+    {key:'a_rolls1000',cat:'habit',name:'千锤百炼',cond:'累计投掷 1,000 次',f:s=>s.total_rolls>=1000},
+    {key:'a_rolls10000',cat:'habit',name:'万投不爽',cond:'累计投掷 10,000 次',f:s=>s.total_rolls>=10000},
+    {key:'a_days3',cat:'habit',name:'日积月累',cond:'连续 3 天投掷',f:s=>s.streak_days>=3},
+    {key:'a_days7',cat:'habit',name:'七天乐',cond:'连续 7 天投掷',f:s=>s.streak_days>=7},
+    {key:'a_days30',cat:'habit',name:'月更选手',cond:'累计 30 天有投掷',f:s=>s.days_count>=30},
+    {key:'a_night',cat:'habit',name:'夜猫子',cond:'累计 0–4 点投掷 10 次',f:s=>s.night_rolls>=10},
+    {key:'a_morning',cat:'habit',name:'早八人',cond:'累计 6–8 点投掷 10 次',f:s=>s.morning_rolls>=10},
+    {key:'a_today100',cat:'habit',name:'今日大忙人',cond:'单日投掷满 100 次',f:s=>s.today_count>=100},
+    {key:'a_speed30',cat:'habit',name:'手速狂魔',cond:'1 分钟内投掷 30 次',f:s=>s.ev_speed},
+    {key:'a_allmethods',cat:'habit',name:'四海为家',cond:'四种玩法各玩过一次',f:s=>s.methods.coin&&s.methods.d6&&s.methods.d20&&s.methods.luck},
+  ];
+  const ACH={}; ACHIEVEMENTS.forEach(a=>ACH[a.key]=a);
+  const CATS_ORDER=['coin','d6','d20','luck','meta','habit'];
+  const CATLABEL={coin:'🪙 抛硬币',d6:'🎲 D6 骰子',d20:'🎯 D20 骰子',luck:'🎋 气运抽签',meta:'📈 等级 & 收集',habit:'⏰ 习惯 · 里程碑'};
+
+  /* ====================== 本地存档 ====================== */
+  const SAVE_KEY='shaita_save_v3';
+  const blank={ level:1, xp:0, ach:{},
+    stats:{ total_rolls:0,
+      coin_total:0,heads:0,tails:0,coin_streak:0,coin_streak_face:null,coin_max_streak:0,coin_today:0,coin_today_date:null,
+      d6_total:0,d6_sum_total:0,d6_six_count:0,d6_six_streak:0,d6_six_max_streak:0,d6_one_streak:0,d6_one_max_streak:0,d6_hide_used:false,d6_used6:false,ev_daji6:false,ev_snake:false,ev_baozi:false,ev_full34:false,
+      d20_total:0,d20_ones:0,d20_twenties:0,d20_one_streak:0,d20_one_max_streak:0,d20_twenty_streak:0,d20_twenty_max_streak:0,d20_last:null,d20_seen:[],ev_rescue:false,
+      luck_total:0,luck_high_count:0,luck_low_count:0,luck_blocked:0,luck_q_max:0,ev_luck1:false,ev_luck50:false,ev_luck100:false,ev_extreme:false,luck_day_high:false,luck_day_low:false,
+      methods:{coin:false,d6:false,d20:false,luck:false},
+      night_rolls:0,morning_rolls:0,today_date:null,today_count:0,last_play_date:null,streak_days:0,days_list:[],days_count:0,ev_speed:false },
+    inv:{skins:['default'],trinkets:[],current_skin:'default',activeRow:0},
+    luckAsked:{} };
+  ACHIEVEMENTS.forEach(a=>blank.ach[a.key]=false);
+  let save;
+  try{ save=JSON.parse(localStorage.getItem(SAVE_KEY)); }catch(e){}
+  if(!save) save=JSON.parse(JSON.stringify(blank));
+  (function fill(dst,def){ for(const k in def){ const dv=def[k];
+    if(dv&&typeof dv==='object'&&!Array.isArray(dv)){ if(typeof dst[k]!=='object'||!dst[k]) dst[k]={}; fill(dst[k],dv); }
+    else if(!(k in dst)) dst[k]=JSON.parse(JSON.stringify(dv)); } })(save,blank);
+  ACHIEVEMENTS.forEach(a=>{ if(!(a.key in save.ach)) save.ach[a.key]=false; });
+  function persist(){ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }
+  function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+  function dayDiff(a,b){ const pa=a.split('-').map(Number),pb=b.split('-').map(Number); return Math.round((new Date(pb[0],pb[1]-1,pb[2])-new Date(pa[0],pa[1]-1,pa[2]))/86400000); }
+
+  /* ====================== XP & 升级 ====================== */
+  function showLevelToast(L){ const t=document.getElementById('lvl-toast'); if(!t)return;
+    t.querySelector('.lt-lv').textContent='LV.'+L+(L>=100?' · MAX':'  升级！');
+    t.querySelector('.lt-ti').textContent='【'+titleForLevel(L).title+'】';
+    t.classList.add('show'); vibrate(40); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2300); }
+  function addXP(amt){ save.xp+=amt; const nl=levelFromXp(save.xp); if(nl>save.level){ save.level=nl; showLevelToast(nl); } }
+
+  /* ====================== 计数器 + 成就判定 ====================== */
+  let rollTimes=[];
+  function pushRollTime(){ const now=Date.now(); rollTimes.push(now); rollTimes=rollTimes.filter(t=>now-t<=60000); if(rollTimes.length>=30) save.stats.ev_speed=true; }
+  function unlockedCount(){ let c=0; for(const k in save.ach) if(save.ach[k]) c++; return c; }
+  function updateStats(type,val,extra){
+    const s=save.stats, today=todayStr();
+    if(s.today_date!==today){
+      s.today_date=today; s.today_count=0; addXP(50);          // 🌅 每日首投 +50
+      if(s.last_play_date){ const d=dayDiff(s.last_play_date,today); s.streak_days=(d===1)?(s.streak_days+1):1; } else s.streak_days=1;
+      s.last_play_date=today; if(!s.days_list.includes(today)) s.days_list.push(today); s.days_count=s.days_list.length;
+      s.luck_day_high=false; s.luck_day_low=false;
+    }
+    s.today_count++; s.total_rolls++; s.methods[type]=true;
+    const hr=new Date().getHours(); if(hr>=0&&hr<4) s.night_rolls++; if(hr>=6&&hr<8) s.morning_rolls++;
+    pushRollTime();
+    if(type==='coin'){
+      s.coin_total++;
+      if(s.coin_today_date!==today){ s.coin_today_date=today; s.coin_today=0; } s.coin_today++;
+      if(val==='H') s.heads++; else s.tails++;
+      if(s.coin_streak_face===val) s.coin_streak++; else { s.coin_streak_face=val; s.coin_streak=1; }
+      s.coin_max_streak=Math.max(s.coin_max_streak,s.coin_streak);
+    } else if(type==='d6'){
+      const r=extra.results, cnt=r.length;
+      s.d6_total++; s.d6_sum_total+=r.reduce((a,b)=>a+b,0); s.d6_six_count+=r.filter(x=>x===6).length;
+      if(r[0]===6) s.d6_six_streak++; else s.d6_six_streak=0; s.d6_six_max_streak=Math.max(s.d6_six_max_streak,s.d6_six_streak);
+      if(r[0]===1) s.d6_one_streak++; else s.d6_one_streak=0; s.d6_one_max_streak=Math.max(s.d6_one_max_streak,s.d6_one_streak);
+      const allSame=r.every(x=>x===r[0]);
+      if(cnt===6&&r.every(x=>x===6)) s.ev_daji6=true;
+      if(cnt>=2&&r.every(x=>x===1)) s.ev_snake=true;
+      if(cnt>=3&&allSame) s.ev_baozi=true;
+      if(cnt===6&&r.reduce((a,b)=>a+b,0)>=34) s.ev_full34=true;
+    } else if(type==='d20'){
+      s.d20_total++;
+      if(val===1){ s.d20_ones++; s.d20_one_streak++; } else s.d20_one_streak=0;
+      if(val===20){ s.d20_twenties++; s.d20_twenty_streak++; } else s.d20_twenty_streak=0;
+      s.d20_one_max_streak=Math.max(s.d20_one_max_streak,s.d20_one_streak);
+      s.d20_twenty_max_streak=Math.max(s.d20_twenty_max_streak,s.d20_twenty_streak);
+      if(s.d20_last===1&&val===20) s.ev_rescue=true; s.d20_last=val;
+      if(!s.d20_seen.includes(val)) s.d20_seen.push(val);
+    } else if(type==='luck'){
+      s.luck_total++;
+      if(val===100) s.ev_luck100=true; if(val===1) s.ev_luck1=true; if(val===50) s.ev_luck50=true;
+      if(val>=90){ s.luck_high_count++; s.luck_day_high=true; }
+      if(val<=10){ s.luck_low_count++; s.luck_day_low=true; }
+      if(s.luck_day_high&&s.luck_day_low) s.ev_extreme=true;
+      if(extra.ev){ s.luck_q_max=Math.max(s.luck_q_max, Object.keys(save.luckAsked[today]||{}).length); }
+    }
+  }
+  function evalAchievements(){
+    let any=false, changed=true;
+    while(changed){ changed=false; const ac=unlockedCount();
+      for(const a of ACHIEVEMENTS){ if(!save.ach[a.key] && a.f(save.stats, save.level, ac)){ unlock(a.key); changed=true; any=true; } } }
+    if(any && !document.getElementById('page-home').classList.contains('hidden')) renderHomePage();
+  }
+
+  /* ====================== 页面切换 ====================== */
+  const pages=['page-cast','page-bag','page-home'];
+  const navItems=document.querySelectorAll('.nav-item');
+  function showPage(id){
+    pages.forEach(p=>{ const el=document.getElementById(p);
+      if(p===id){ el.classList.remove('hidden'); el.classList.remove('page-enter'); void el.offsetWidth; el.classList.add('page-enter'); }
+      else el.classList.add('hidden'); });
+    navItems.forEach(b=>b.dataset.active=(b.dataset.page===id)?'true':'false');
+    if(id==='page-bag') renderStats();
+    if(id==='page-home') renderHomePage();
+  }
+  navItems.forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
+
+  /* ====================== 玩法切换 ====================== */
+  const mtabs=document.querySelectorAll('.mtab');
+  const stageHint=document.getElementById('stage-hint');
+  const resultBox=document.getElementById('result-box');
+  const luckWrap=document.getElementById('luck-input-wrap');
+  const props={ coin:document.getElementById('prop-coin'), d6:document.getElementById('prop-d6'), d20:document.getElementById('prop-d20'), luck:document.getElementById('prop-luck') };
+  const HINT={ coin:'抛硬币 · 正面 or 反面', d6:'D6 骰子 · 1 ~ 6 点', d20:'D20 骰子 · 1 ~ 20 点', luck:'气运抽签 · 1% ~ 100%' };
+  let current='coin';
+  function defaultResult(){ resultBox.innerHTML='<p class="font-roman text-xl tracking-wide text-ink-soft">交付你的命运</p>'; }
+  function selectMethod(m){
+    current=m;
+    mtabs.forEach(t=>t.dataset.active=(t.dataset.method===m)?'true':'false');
+    Object.keys(props).forEach(k=>props[k].classList.toggle('hidden',k!==m));
+    stageHint.textContent=HINT[m];
+    luckWrap.classList.toggle('hidden',m!=='luck');
+    document.getElementById('d6-qty').classList.toggle('hidden',m!=='d6');
+    resetD6Hide();                          // 切换玩法时清除模糊
+    if(m==='d6'){ buildDice(d6count); }
+    const p=props[m]; p.classList.remove('prop-in'); void p.offsetWidth; p.classList.add('prop-in');  // 进场动画
+    defaultResult();
+  }
+  mtabs.forEach(t=>t.addEventListener('click',()=>selectMethod(t.dataset.method)));
+
+  /* ====================== D6 多骰（1~6 颗）====================== */
+  const PIP={1:[5],2:[1,9],3:[1,5,9],4:[1,3,7,9],5:[1,3,5,7,9],6:[1,3,4,6,7,9]};
+  let d6count=1, d6cubes=[];
+  function makeCube(size){
+    const scene=document.createElement('div'); scene.className='cube-scene';
+    scene.style.width=size+'px'; scene.style.height=size+'px'; scene.style.perspective=(size*6)+'px';
+    const cube=document.createElement('div'); cube.className='cube'; cube.style.transform='rotateX(-20deg) rotateY(20deg)';
+    const tz=(size/2), tzc=(size*0.46), rad=(size*0.12), pad=(size*0.13), pip=(size*0.145);
+    const faces=[['front',1],['back',6],['right',2],['left',5],['top',3],['bottom',4]];
+    const trans={front:'translateZ('+tz+'px)',back:'rotateY(180deg) translateZ('+tz+'px)',right:'rotateY(90deg) translateZ('+tz+'px)',left:'rotateY(-90deg) translateZ('+tz+'px)',top:'rotateX(90deg) translateZ('+tz+'px)',bottom:'rotateX(-90deg) translateZ('+tz+'px)'};
+    faces.forEach(f=>{ const fe=document.createElement('div'); fe.className='cube-face';
+      fe.style.width=size+'px'; fe.style.height=size+'px'; fe.style.borderRadius=rad+'px'; fe.style.padding=pad+'px'; fe.style.transform=trans[f[0]];
+      for(let i=1;i<=9;i++){ const s=document.createElement('span'); if(PIP[f[1]].includes(i)){ s.className='pip'; s.style.width=pip+'px'; s.style.height=pip+'px'; } fe.appendChild(s);} cube.appendChild(fe); });
+    ['translateZ('+tzc+'px)','rotateY(180deg) translateZ('+tzc+'px)','rotateY(90deg) translateZ('+tzc+'px)','rotateY(-90deg) translateZ('+tzc+'px)','rotateX(90deg) translateZ('+tzc+'px)','rotateX(-90deg) translateZ('+tzc+'px)']
+      .forEach(t=>{ const c=document.createElement('div'); c.className='cube-core'; c.style.width=size+'px'; c.style.height=size+'px'; c.style.transform=t; cube.appendChild(c); });
+    scene.appendChild(cube); return {scene:scene, cube:cube};
+  }
+  function buildDice(count){
+    const wrap=document.getElementById('d6Dice'); wrap.innerHTML=''; d6cubes=[];
+    const size = count<=1?104 : count===2?86 : count===3?72 : 62;
+    const cols=Math.min(count,3);                       // 一排最多 3 颗
+    wrap.style.maxWidth=(cols*size + (cols-1)*18)+'px';
+    for(let i=0;i<count;i++){ const o=makeCube(size); wrap.appendChild(o.scene); d6cubes.push(o); }
+  }
+  let d6hidden=false;
+  function setD6Hidden(h){
+    d6hidden=h;
+    document.getElementById('d6Dice').classList.toggle('blurred',h);
+    document.getElementById('result-box').classList.toggle('blurred',h);
+    const b=document.getElementById('d6HideBtn'); if(b) b.textContent=h?'显示':'隐藏';
+  }
+  function resetD6Hide(){ setD6Hidden(false); }
+  // 数量选择
+  document.querySelectorAll('#d6-qty .qty-btn').forEach(b=>b.addEventListener('click',()=>{
+    d6count=+b.dataset.q;
+    document.querySelectorAll('#d6-qty .qty-btn').forEach(x=>x.dataset.on=(+x.dataset.q===d6count)?'true':'false');
+    buildDice(d6count); resetD6Hide();
+    if(d6count===6){ save.stats.d6_used6=true; evalAchievements(); persist(); }   // 人多力量大
+  }));
+  // 隐藏 = 模糊化（再次点击恢复）
+  document.getElementById('d6HideBtn').addEventListener('click',()=>{ setD6Hidden(!d6hidden);
+    if(d6hidden){ save.stats.d6_hide_used=true; evalAchievements(); persist(); } });   // 遮羞布
+
+  /* ====================== D20 真3D 二十面体 ====================== */
+  function vsub(a,b){return[a[0]-b[0],a[1]-b[1],a[2]-b[2]];}
+  function vcross(a,b){return[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];}
+  function vdot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
+  function vlen(a){return Math.hypot(a[0],a[1],a[2]);}
+  function vnorm(a){var l=vlen(a)||1;return[a[0]/l,a[1]/l,a[2]/l];}
+  function vsc(a,s){return[a[0]*s,a[1]*s,a[2]*s];}
+  function mmul(A,B){var C=[];for(var r=0;r<3;r++)for(var c=0;c<3;c++)C[r*3+c]=A[r*3]*B[c]+A[r*3+1]*B[3+c]+A[r*3+2]*B[6+c];return C;}
+  function mvec(M,v){return[M[0]*v[0]+M[1]*v[1]+M[2]*v[2],M[3]*v[0]+M[4]*v[1]+M[5]*v[2],M[6]*v[0]+M[7]*v[1]+M[8]*v[2]];}
+  function axisAngle(ax,an){var a=vnorm(ax),x=a[0],y=a[1],z=a[2],c=Math.cos(an),s=Math.sin(an),t=1-c;
+    return[t*x*x+c,t*x*y-s*z,t*x*z+s*y, t*x*y+s*z,t*y*y+c,t*y*z-s*x, t*x*z-s*y,t*y*z+s*x,t*z*z+c];}
+  function m3d(R){ // 3x3 旋转 -> matrix3d 字符串(列主序, 无平移)
+    return 'matrix3d('+[R[0],R[3],R[6],0, R[1],R[4],R[7],0, R[2],R[5],R[8],0, 0,0,0,1].join(',')+')'; }
+
+  const PHI=1.6180339887, S=46;
+  const V=[[-1,PHI,0],[1,PHI,0],[-1,-PHI,0],[1,-PHI,0],[0,-1,PHI],[0,1,PHI],[0,-1,-PHI],[0,1,-PHI],[PHI,0,-1],[PHI,0,1],[-PHI,0,-1],[-PHI,0,1]].map(v=>vsc(v,S));
+  const F=[[0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],[1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],[3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],[4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1]];
+  const EDGE=2*S, HH=0.8660254*EDGE;       // 三角形边长 / 高
+  const LIGHT=vnorm([0.35,-0.5,0.85]);
+  const d20faces=[];                       // {el, centroidUnit, num}
+  (function buildD20(){
+    const ico=document.getElementById('d20Ico');
+    F.forEach((f,i)=>{
+      const q0=V[f[0]], q1=V[f[1]], q2=V[f[2]];
+      const A=vsc(vsub(q1,q0),1/EDGE);
+      const B=vsc(vsub(vsub(q2,q0),vsc(vsub(q1,q0),0.5)),1/HH);
+      const N=vnorm(vcross(vsub(q1,q0),vsub(q2,q0)));
+      const mat='matrix3d('+[A[0],A[1],A[2],0, B[0],B[1],B[2],0, N[0],N[1],N[2],0, q0[0],q0[1],q0[2],1].join(',')+')';
+      const cen=vnorm([(q0[0]+q1[0]+q2[0])/3,(q0[1]+q1[1]+q2[1])/3,(q0[2]+q1[2]+q2[2])/3]);
+      const sh=Math.max(0,vdot(N,LIGHT)); const L=70+sh*26;               // 象牙明度
+      const el=document.createElement('div'); el.className='d20-face';
+      el.style.width=EDGE+'px'; el.style.height=HH+'px';
+      el.style.transform=mat;
+      el.style.clipPath='polygon(0 0,100% 0,50% 100%)';
+      el.style.background='hsl(44 36% '+L+'%)';
+      el.innerHTML='<span class="fnum" style="position:absolute;left:50%;top:33%;transform:translate(-50%,-50%)">'+(i+1)+'</span>';
+      ico.appendChild(el);
+      d20faces.push({el:el, cen:cen, A:A, num:i+1});
+    });
+  })();
+  let d20Rot=[1,0,0,0,1,0,0,0,1];
+  function rotateTo(cen){ // 让该面中心朝向观察者(+z)
+    const z=[0,0,1], c=vnorm(cen), d=Math.max(-1,Math.min(1,vdot(c,z)));
+    if(d>0.9999) return [1,0,0,0,1,0,0,0,1];
+    if(d<-0.9999) return axisAngle([1,0,0],Math.PI);
+    return axisAngle(vcross(c,z), Math.acos(d));
+  }
+  function rollD20visual(n){
+    const face=d20faces[n-1];
+    let R=rotateTo(face.cen);
+    // 让停住的面：数字水平放置（把该面局部横轴旋到屏幕水平）
+    const a2=mvec(R, face.A);
+    const Rz=axisAngle([0,0,1], -Math.atan2(a2[1],a2[0]));
+    const target=mmul(Rz, R);
+    const start=d20Rot;
+    const ico=document.getElementById('d20Ico');
+    d20faces.forEach(f=>f.el.classList.remove('lit'));
+    ico.getAnimations().forEach(a=>a.cancel());
+    // 固定翻滚轴 → 匀速顺滑、不抖；约 3 圈高速后停住
+    const AX=[0.55,1,0.25];
+    const N=8, frames=[{transform:m3d(start), offset:0}];
+    for(let i=1;i<N-1;i++){
+      frames.push({ transform:m3d(mmul(target, axisAngle(AX, 2.35*(N-1-i)))), offset:i/(N-1) });
+    }
+    frames.push({ transform:m3d(target), offset:1 });
+    ico.animate(frames,{duration:1050, easing:'cubic-bezier(.05,.55,.25,1)', fill:'forwards'});
+    d20Rot=target;
+    setTimeout(()=>face.el.classList.add('lit'), 1040);
+  }
+
+  /* ====================== 动画工具 ====================== */
+  function toss(el){ el.classList.remove('toss'); void el.offsetWidth; el.classList.add('toss'); }
+  function vibrate(ms){ if(navigator.vibrate){ try{navigator.vibrate(ms);}catch(e){} } }
+  const coinEl=document.getElementById('coinEl'), coinScene=document.getElementById('coinScene');
+  function flipCoin(h){ const deg=10*180+(h?0:180);
+    coinEl.style.transition='none'; coinEl.style.transform='rotateY(0deg)'; void coinEl.offsetWidth;
+    coinEl.style.transition='transform 1.05s cubic-bezier(.18,.7,.2,1)'; coinEl.style.transform='rotateY('+deg+'deg)'; toss(coinScene); }
+  const LAND={1:[0,0],2:[0,-90],3:[-90,0],4:[90,0],5:[0,90],6:[0,180]};
+  function tumbleOne(o,n){ const a=LAND[n], cube=o.cube;
+    const ex=720+360*Math.floor(Math.random()*2), ey=720+360*Math.floor(Math.random()*2);
+    cube.style.transition='none'; cube.style.transform='rotateX(-20deg) rotateY(20deg)'; void cube.offsetWidth;
+    cube.style.transition='transform 1.0s cubic-bezier(.2,.75,.2,1)'; cube.style.transform='rotateX('+(ex+a[0])+'deg) rotateY('+(ey+a[1])+'deg)'; toss(o.scene); }
+  const tubeSvg=document.getElementById('tubeSvg');
+
+  /* ====================== 投掷调度 + 成就 ====================== */
+  const btn=document.getElementById('btn-roll');
+  let rolling=false;
+  function showResult(html){ resultBox.innerHTML='<p class="result-pop font-song text-3xl font-black text-ink">'+html+'</p>'; }
+  function notice(html){ resultBox.innerHTML='<p class="result-pop font-song text-base text-wax-deep">'+html+'</p>'; }
+  function endRoll(){ rolling=false; btn.classList.remove('opacity-60','pointer-events-none'); }
+
+  function roll(){
+    if(rolling) return;
+    if(current==='luck'){
+      const ev=(document.getElementById('luck-input').value||'').trim();
+      const day=todayStr();
+      if(ev && save.luckAsked[day] && save.luckAsked[day][ev]!=null){
+        notice('📜 天机已泄 · 同一桩心事，今日不可再卜');
+        save.stats.luck_blocked++; evalAchievements(); persist(); return;
+      }
+    }
+    rolling=true; btn.classList.add('opacity-60','pointer-events-none');
+    if(current==='coin'){
+      const h=Math.random()<.5; flipCoin(h);
+      setTimeout(()=>{ vibrate(30); showResult(h?'正面':'反面'); afterRoll('coin',h?'H':'T'); endRoll(); },1060);
+    } else if(current==='d6'){
+      if(!d6cubes.length) buildDice(d6count);
+      resetD6Hide();                                 // 投掷时先恢复清晰
+      const results=d6cubes.map(o=>{ const n=1+Math.floor(Math.random()*6); tumbleOne(o,n); return n; });
+      setTimeout(()=>{ vibrate(30);
+        const sum=results.reduce((a,b)=>a+b,0);
+        showResult(results.length>1
+          ? '<span class="align-middle text-xl text-ink-soft">'+results.join(' + ')+'</span><span class="align-middle text-2xl text-ink-soft"> = </span><span class="align-middle text-6xl text-wax-deep">'+sum+'</span>'
+          : results[0]+' <span class="text-base font-bold text-ink-soft">点</span>');
+        afterRoll('d6',results[0],{results:results}); endRoll(); },1020);
+    } else if(current==='d20'){
+      const n=1+Math.floor(Math.random()*20); rollD20visual(n);
+      setTimeout(()=>{ vibrate(30); showResult('<span style="color:#0c6b66">'+n+'</span>'); afterRoll('d20',n); endRoll(); },1070);
+    } else if(current==='luck'){
+      const n=1+Math.floor(Math.random()*100);
+      const ev=(document.getElementById('luck-input').value||'').trim(), day=todayStr();
+      tubeSvg.classList.remove('shake-tube'); void tubeSvg.offsetWidth; tubeSvg.classList.add('shake-tube');
+      setTimeout(()=>{ vibrate(30);   // 摇动途中，签掉落到下方
+        if(ev){ save.luckAsked[day]=save.luckAsked[day]||{}; save.luckAsked[day][ev]=n; }
+        resultBox.innerHTML='<div class="luck-col">'
+          +'<div class="luck-stick" id="luckStick"><img class="stick-img" src="assets/skins/stick.webp" alt="签"></div>'
+          +'<p class="luck-tip" id="luckTip">👆 轻触签子，揭晓成功率</p>'
+          +'<span class="pct-chip" id="pctChip">'+n+'%</span></div>';
+        const ls=document.getElementById('luckStick');
+        ls.onclick=function(){
+          const c=document.getElementById('pctChip'); if(c) c.style.display='inline-block';
+          const t=document.getElementById('luckTip'); if(t) t.style.display='none'; };
+        ls.animate([                                  // 由小变大从筒里飞到下方（JS 动画，稳定可见）
+          {transform:'translateY(-150px) scale(.18) rotate(-12deg)', opacity:0, offset:0},
+          {transform:'translateY(8px) scale(1.05) rotate(2deg)', opacity:1, offset:.55},
+          {transform:'translateY(0) scale(1) rotate(0)', opacity:1, offset:1}
+        ],{duration:720, easing:'cubic-bezier(.2,.85,.3,1)'});
+        afterRoll('luck',n,{ev:ev}); endRoll(); },420);
+    }
+  }
+  btn.addEventListener('click', roll);
+
+  function afterRoll(type,val,extra){
+    extra=extra||{};
+    updateStats(type,val,extra);
+    addXP(5);                                   // 每次投掷 +5
+    let hl=false;                               // ✨ 高光时刻 +30
+    if(type==='d20'&&(val===1||val===20)) hl=true;
+    if(type==='luck'&&(val===1||val===100)) hl=true;
+    if(type==='d6'&&extra.results&&extra.results.length>=3&&extra.results.every(x=>x===extra.results[0])) hl=true;
+    if(hl) addXP(30);
+    evalAchievements();
+    persist();
+    if(!document.getElementById('page-home').classList.contains('hidden')) renderLevelCard();
+  }
+
+  /* ====================== 成就解锁 + 卷轴弹窗 ====================== */
+  const popQueue=[]; let popBusy=false;
+  function unlock(key){
+    if(save.ach[key]) return;
+    save.ach[key]=true;
+    addXP(200);                      // 🏆 解锁成就 +200 XP
+    persist();
+    popQueue.push(key); pumpPop();
+  }
+  const achPop=document.getElementById('ach-pop');
+  function pumpPop(){
+    if(popBusy || !popQueue.length) return; popBusy=true;
+    const key=popQueue.shift(), a=ACH[key];
+    document.getElementById('ach-name').textContent='【'+a.name+'】';
+    achPop.classList.add('show');     // 不自动关、点空白不关，必须点「收下」
+  }
+  document.getElementById('ach-close').addEventListener('click', function(e){
+    e.stopPropagation();
+    achPop.classList.remove('show');
+    setTimeout(()=>{ popBusy=false; pumpPop(); }, 600);
+  });
+
+  /* ====================== 背包渲染 ====================== */
+  const FILTERS={ default:'none', pixel_gold:'sepia(.35) saturate(2.3) hue-rotate(-12deg) contrast(1.06)', jp_retro:'sepia(.3) saturate(.82) contrast(.95) brightness(1.03)' };
+  function applySkin(){ document.getElementById('stage-props').style.filter = FILTERS[save.inv.current_skin]||'none'; }
+  function miniIcon(k){
+    if(k==='coin') return '<svg class="mini" viewBox="0 0 40 40"><defs><radialGradient id="mc" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#fff0bf"/><stop offset=".55" stop-color="#e0ae4e"/><stop offset="1" stop-color="#9c6e1e"/></radialGradient></defs><circle cx="20" cy="20" r="16" fill="url(#mc)" stroke="#8a5e16" stroke-width="2"/><circle cx="20" cy="20" r="11" fill="none" stroke="#8a5e16" stroke-width="1.2" opacity=".55"/><path d="M20 13 l1.6 4.2 4.5 .3 -3.5 2.9 1.2 4.4 -3.8 -2.5 -3.8 2.5 1.2 -4.4 -3.5 -2.9 4.5 -.3 Z" fill="#8a5e16"/></svg>';
+    if(k==='d6') return '<svg class="mini" viewBox="0 0 40 40"><defs><linearGradient id="md" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d6ab70"/><stop offset="1" stop-color="#9c6f3c"/></linearGradient></defs><rect x="5" y="5" width="30" height="30" rx="8" fill="url(#md)" stroke="#6c4a24" stroke-width="2"/><g fill="#2e1c08"><circle cx="14" cy="14" r="2.6"/><circle cx="26" cy="14" r="2.6"/><circle cx="14" cy="26" r="2.6"/><circle cx="26" cy="26" r="2.6"/><circle cx="20" cy="20" r="2.6"/></g></svg>';
+    if(k==='d20') return '<svg class="mini" viewBox="-20 -20 40 40"><defs><linearGradient id="m20" x1="0" y1="-1" x2="0" y2="1"><stop offset="0" stop-color="#f4eedd"/><stop offset="1" stop-color="#d8cfb6"/></linearGradient></defs><polygon points="0,-17 15,-9 15,9 0,17 -15,9 -15,-9" fill="url(#m20)" stroke="#3a352c" stroke-width="2" stroke-linejoin="round"/><polygon points="0,-9 9,5 -9,5" fill="#fbf6e8" stroke="#3a352c" stroke-width="1.2"/><text x="0" y="3.5" text-anchor="middle" font-size="9" font-family="Cinzel,serif" font-weight="700" fill="#0c6b66">20</text></svg>';
+    return '<svg class="mini" viewBox="0 0 40 40"><defs><linearGradient id="mt" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8a1812"/><stop offset=".5" stop-color="#dc3a2e"/><stop offset="1" stop-color="#8a1812"/></linearGradient></defs><g stroke="#a87c2a" stroke-width=".8"><path d="M15 13 L15 6 L17 6 L17 13 Z" fill="#cf2f24"/><path d="M19 13 L19 4 L21 4 L21 13 Z" fill="#cf2f24"/><path d="M23 13 L23 6 L25 6 L25 13 Z" fill="#cf2f24"/></g><rect x="12" y="14" width="16" height="21" rx="2" fill="url(#mt)" stroke="#5e0d09" stroke-width="1.5"/><rect x="11" y="14" width="18" height="3.4" fill="#e0bb55"/><text x="20" y="28" text-anchor="middle" font-size="9" font-family="Noto Serif SC,serif" font-weight="900" fill="#f8db84">宜</text></svg>';
+  }
+  function renderStats(){
+    const s=save.stats;
+    const groups=[
+      {label:'📊 总览', items:[['累计投掷',s.total_rolls],['当前等级','LV.'+save.level],['累计经验',save.xp.toLocaleString()+' XP'],['解锁成就',unlockedCount()+' / '+ACHIEVEMENTS.length]]},
+      {label:'🪙 抛硬币', items:[['抛掷次数',s.coin_total],['正面',s.heads],['反面',s.tails],['最高连同面',s.coin_max_streak]]},
+      {label:'🎲 D6 骰子', items:[['投掷次数',s.d6_total],['累计点数',s.d6_sum_total.toLocaleString()],['掷出 6 的个数',s.d6_six_count],['单颗连 6 最高',s.d6_six_max_streak]]},
+      {label:'🎯 D20 骰子', items:[['投掷次数',s.d20_total],['大成功(20)',s.d20_twenties],['大失败(1)',s.d20_ones],['集邮进度',s.d20_seen.length+' / 20']]},
+      {label:'🎋 气运抽签', items:[['抽签次数',s.luck_total],['高运 ≥90%',s.luck_high_count],['低运 ≤10%',s.luck_low_count],['被拦次数',s.luck_blocked]]},
+      {label:'⏰ 习惯', items:[['累计天数',s.days_count],['连续天数',s.streak_days],['夜猫子 0-4点',s.night_rolls],['早八 6-8点',s.morning_rolls]]},
+    ];
+    document.getElementById('stats-wrap').innerHTML=groups.map(g=>
+      '<h3 class="stats-cat">'+g.label+'</h3><div class="stats-grid">'+
+      g.items.map(it=>'<div class="stat-card"><div class="stat-num">'+it[1]+'</div><div class="stat-lbl">'+it[0]+'</div></div>').join('')+
+      '</div>'
+    ).join('');
+  }
+
+  /* ====================== 奖杯墙渲染 ====================== */
+  function trophySVG(un){ return '<img class="trophy'+(un?'':' troph-lock')+'" src="assets/skins/trophy.webp" alt="奖杯" />'; }
+  function cell(a){ const un=save.ach[a.key];
+    return '<div class="ach-cell'+(un?' on':'')+'">'+trophySVG(un)+
+      '<p class="ach-name">'+(un?'【'+a.name+'】':'？？？')+'</p>'+
+      '<p class="ach-cond">'+a.cond+'</p></div>'; }
+  function renderAchWall(){
+    let html='';
+    for(const c of CATS_ORDER){ const items=ACHIEVEMENTS.filter(a=>a.cat===c);
+      const got=items.filter(a=>save.ach[a.key]).length;
+      html+='<div class="ach-cat"><span>'+CATLABEL[c]+'</span><span class="ach-cat-n">'+got+' / '+items.length+'</span></div>';
+      html+='<div class="ach-grid">'+items.map(cell).join('')+'</div>'; }
+    document.getElementById('trophy-wall').innerHTML=html;
+    const tot=document.getElementById('ach-total'); if(tot) tot.textContent=unlockedCount()+' / '+ACHIEVEMENTS.length;
+  }
+  function renderLevelCard(){
+    const L=save.level, ti=titleForLevel(L);
+    document.getElementById('home-lv').textContent='LV.'+L;
+    document.getElementById('home-title').textContent=ti.title;
+    document.getElementById('home-desc').textContent=ti.desc;
+    const bar=document.getElementById('home-xp-bar'), xt=document.getElementById('home-xp');
+    if(L>=100){ bar.style.width='100%'; xt.textContent='MAX · 累计 '+save.xp.toLocaleString()+' XP'; }
+    else { const base=xpForLevel(L), need=xpForLevel(L+1)-base, into=save.xp-base;
+      bar.style.width=Math.max(0,Math.min(100,into/need*100))+'%'; xt.textContent=into+' / '+need+' XP'; }
+  }
+  function renderHomePage(){ renderLevelCard(); renderAchWall(); }
+
+  /* ====================== 启动 ====================== */
+  applySkin();
+  showPage('page-cast');
+  selectMethod('coin');
+
+  /* PWA：注册离线 Service Worker */
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){ navigator.serviceWorker.register('service-worker.js').catch(function(){}); });
+  }
+  </script>
+</body>
+</html>

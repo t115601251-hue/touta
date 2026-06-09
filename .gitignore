@@ -1,0 +1,7 @@
+# Local Netlify folder
+.netlify
+node_modules/
+dist/
+骰它-app.zip
+*.output
+.DS_Store
