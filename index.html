@@ -40,8 +40,14 @@
         radial-gradient(120% 90% at 50% 0%, rgba(255,248,228,.5), rgba(0,0,0,0) 55%),
         radial-gradient(130% 120% at 50% 100%, rgba(110,80,40,.22), rgba(0,0,0,0) 60%),
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E");
+      background-attachment:fixed; background-repeat:repeat;
       overscroll-behavior:none; -webkit-tap-highlight-color:transparent;
+      overflow:hidden;        /* 文档本身不滚动，只让 main 内部滚动 → 背景固定不分层 */
     }
+    /* 应用外框 = 一屏高（dvh，带 vh 兜底给老 WebView），内部 main 才滚动 */
+    .app-frame{ height:100vh; height:100dvh; }
+    /* 底部切换栏：在流内固定于底部，并避让手势条安全区 */
+    .tabbar{ padding-bottom:env(safe-area-inset-bottom); }
     .no-bar::-webkit-scrollbar{ display:none; } .no-bar{ -ms-overflow-style:none; scrollbar-width:none; }
     .page-enter{ animation:pageIn .5s cubic-bezier(.22,1,.36,1); }
     @keyframes pageIn{ from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
@@ -237,13 +243,13 @@
 </head>
 
 <body class="font-song text-ink antialiased">
-  <div class="app-frame relative mx-auto flex min-h-[100dvh] max-w-[440px] flex-col overflow-hidden">
+  <div class="app-frame relative mx-auto flex max-w-[440px] flex-col overflow-hidden">
     <div class="frame-corners"><i></i></div>
 
-    <main class="flex-1 overflow-y-auto px-7 pb-28">
+    <main class="no-bar min-h-0 flex-1 overflow-y-auto px-7 pb-6">
 
       <!-- ===== 天命投掷 ===== -->
-      <section id="page-cast" class="page-enter relative flex min-h-[calc(100dvh-7rem)] flex-col pt-12">
+      <section id="page-cast" class="page-enter relative flex min-h-full flex-col pt-12">
         <header class="text-center">
           <h1 class="font-song text-4xl font-black tracking-[.15em] text-ink">天命投掷</h1>
           <div class="rule mx-auto mt-4 w-40"></div>
@@ -306,7 +312,7 @@
       </section>
 
       <!-- ===== 冒险背包 ===== -->
-      <section id="page-bag" class="page-enter leather hidden -mx-7 px-7 pt-12" style="min-height:calc(100dvh - 7rem)">
+      <section id="page-bag" class="page-enter leather hidden -mx-7 px-7 pb-6 pt-12" style="min-height:100%">
         <header class="text-center">
           <p class="font-roman text-sm tracking-[.4em]" style="color:#d6b67a">ARCHIVE</p>
           <h2 class="mt-1 font-song text-4xl font-black tracking-[.15em]" style="color:#f0e3c4">数据档案</h2>
@@ -341,7 +347,7 @@
 
     </main>
 
-    <nav class="absolute bottom-0 left-0 right-0 z-20 border-t border-gold/50 bg-parch-2/90 backdrop-blur-md">
+    <nav class="tabbar relative z-20 shrink-0 border-t border-gold/50 bg-parch-2/90 backdrop-blur-md">
       <div class="mx-auto grid max-w-[440px] grid-cols-3 px-4 py-3">
         <button class="nav-item flex flex-col items-center gap-1" data-page="page-cast" data-active="true">
           <svg class="nav-ico h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="16" cy="8" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="8" cy="16" r="1.2" fill="currentColor"/><circle cx="16" cy="16" r="1.2" fill="currentColor"/></svg>
