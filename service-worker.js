@@ -1,11 +1,12 @@
 /* 骰它 · 离线缓存 Service Worker */
-const CACHE = 'shaita-v2';
+const CACHE = 'shaita-v3';
 const SHELL = [
   './', './index.html', './app.css',
   './assets/fonts/cinzel.woff2', './assets/fonts/notoserifsc.woff2',
   './icon-192.png', './icon-512.png', './icon-180.png',
   './assets/skins/coin_front.webp', './assets/skins/coin_back.webp',
-  './assets/skins/tube.webp', './assets/skins/stick.webp', './assets/skins/trophy.webp'
+  './assets/skins/tube.webp', './assets/skins/stick.webp', './assets/skins/trophy.webp',
+  './assets/skins/seal.png'
 ];
 
 self.addEventListener('install', e => {

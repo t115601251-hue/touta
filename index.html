@@ -232,35 +232,50 @@
     /* ===== #6 顶部安全区 + #7 原生手感 ===== */
     .app-frame{ padding-top:env(safe-area-inset-top); }
     body{ -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; touch-action:manipulation; }
-    input{ -webkit-user-select:text; user-select:text; }
+    input,textarea{ -webkit-user-select:text; user-select:text; }
+    .hidden{ display:none !important; }   /* 修复：app.css 先于内联样式加载，确保 hidden 始终压过组件样式 */
 
-    /* ===== #2 启动·羊皮纸展开 ===== */
+    /* ===== #2 启动·羊皮纸展开（精修版） ===== */
     .splash{ position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center;
-      background-color:#E6D9B8;
-      background-image:
-        radial-gradient(120% 90% at 50% 0%, rgba(255,248,228,.6), rgba(0,0,0,0) 55%),
-        radial-gradient(130% 120% at 50% 100%, rgba(110,80,40,.22), rgba(0,0,0,0) 60%);
-      transition:opacity .5s ease; }
+      background:#241a10 radial-gradient(120% 90% at 50% 32%, #4a3a23, #19120a 78%);
+      transition:opacity .6s ease; }
     .splash.gone{ opacity:0; pointer-events:none; }
-    .splash .roll{ width:min(80%,320px); filter:drop-shadow(0 18px 30px rgba(60,40,10,.35)); }
-    .splash .sheet{ height:0; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center;
-      background:linear-gradient(#f3ead0,#e6d6ad); border-left:2px solid #c9b079; border-right:2px solid #c9b079;
-      box-shadow:inset 0 0 36px rgba(150,110,50,.2); }
-    .splash.run .sheet{ animation:sUnroll .85s cubic-bezier(.2,.8,.2,1) .15s forwards; }
-    @keyframes sUnroll{ from{height:0} to{height:250px} }
-    .splash .inner{ opacity:0; transform:translateY(10px) scale(.96); text-align:center; padding:0 20px; }
-    .splash.run .inner{ animation:sFade .55s ease .82s forwards; }
+    .splash .roll{ width:min(78%,308px); filter:drop-shadow(0 26px 40px rgba(0,0,0,.6)); }
+    /* 木轴（上下） */
+    .srod{ position:relative; z-index:3; height:26px; margin:0 -12px; border-radius:13px;
+      background:linear-gradient(180deg,#ecc888,#b07f3e 42%,#7a4f24 78%,#5e3c1b);
+      box-shadow:0 5px 12px rgba(0,0,0,.55), inset 0 3px 0 rgba(255,242,205,.6), inset 0 -5px 7px rgba(60,32,8,.55); }
+    .srod::before,.srod::after{ content:""; position:absolute; top:50%; transform:translateY(-50%); width:24px; height:36px; border-radius:7px;
+      background:radial-gradient(circle at 38% 32%, #f2d79e, #9a6630 72%, #6e451f);
+      box-shadow:0 3px 7px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,240,205,.5); }
+    .srod::before{ left:-15px } .srod::after{ right:-15px }
+    /* 羊皮卷纸（带噪点纹理 + 暗角 + 内描边） */
+    .splash .sheet{ height:0; overflow:hidden; }
+    .splash.run .sheet{ animation:sUnroll 1s cubic-bezier(.2,.82,.22,1) .12s forwards; }
+    @keyframes sUnroll{ from{height:0} to{height:344px} }
+    .paper{ position:relative; height:344px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      border-left:3px solid #c6a35e; border-right:3px solid #c6a35e; background-color:#ead9af;
+      background-image:
+        radial-gradient(125% 80% at 50% 0%, rgba(255,250,228,.85), rgba(0,0,0,0) 58%),
+        radial-gradient(60% 42% at 16% 20%, rgba(150,110,55,.22), transparent 62%),
+        radial-gradient(58% 40% at 86% 84%, rgba(120,84,42,.26), transparent 62%),
+        radial-gradient(72% 58% at 50% 52%, rgba(90,60,25,0) 58%, rgba(80,52,20,.28) 100%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
+      box-shadow:inset 0 0 60px rgba(110,72,28,.4), inset 0 14px 22px -14px rgba(60,38,12,.7), inset 0 -14px 22px -14px rgba(60,38,12,.7); }
+    .paper::before{ content:""; position:absolute; inset:11px; border:1.5px solid rgba(150,112,58,.45); border-radius:3px; pointer-events:none; }
+    .seal-img{ width:140px; height:auto; opacity:0; transform:scale(1.55); filter:drop-shadow(0 12px 16px rgba(70,10,6,.55)); }
+    .splash.run .seal-img{ animation:sStamp .52s cubic-bezier(.32,1.5,.42,1) .92s forwards; }
+    @keyframes sStamp{ 0%{opacity:0; transform:scale(1.6) rotate(-6deg)} 55%{opacity:1; transform:scale(.93) rotate(1.5deg)} 100%{opacity:1; transform:scale(1) rotate(0)} }
+    .splash .txt{ opacity:0; transform:translateY(10px); text-align:center; margin-top:18px; }
+    .splash.run .txt{ animation:sFade .6s ease 1.2s forwards; }
     @keyframes sFade{ to{opacity:1; transform:none} }
-    .splash .seal{ width:78px; height:78px; margin:0 auto 12px; border-radius:50%;
-      background:radial-gradient(circle at 38% 30%, #c4402f, #7e1f15 70%, #5e120c);
-      box-shadow:0 6px 14px -4px rgba(90,12,8,.6), inset 0 2px 5px rgba(255,180,150,.5), inset 0 -5px 10px rgba(60,6,4,.6);
-      display:flex; align-items:center; justify-content:center;
-      font-family:"Noto Serif SC",serif; font-weight:900; font-size:2.4rem; color:#f6d9a0; text-shadow:0 1px 2px rgba(60,6,4,.7); }
-    .splash .stitle{ font-family:"Noto Serif SC",serif; font-weight:900; font-size:2.7rem; letter-spacing:.18em; color:#2e2a22; }
-    .splash .ssub{ margin-top:6px; font-family:"Cinzel",serif; font-size:.82rem; letter-spacing:.28em; color:#9c7a3c; }
+    .splash .stitle{ font-family:"Noto Serif SC",serif; font-weight:900; font-size:2.6rem; letter-spacing:.22em; color:#3a2a18;
+      text-shadow:0 1px 0 rgba(255,250,230,.65), 0 3px 6px rgba(90,58,18,.3); }
+    .splash .sgold{ width:118px; height:2px; margin:10px auto 0; background:linear-gradient(90deg,transparent,#b8923f,transparent); }
+    .splash .ssub{ margin-top:9px; font-family:"Cinzel",serif; font-size:.72rem; letter-spacing:.42em; color:#9c7a3c; }
     .splash .skip{ position:absolute; bottom:max(26px,env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
-      font-family:"Cinzel",serif; font-size:.7rem; letter-spacing:.2em; color:#b09865; opacity:0; }
-    .splash.run .skip{ animation:sFade .5s ease 1.2s forwards; }
+      font-family:"Cinzel",serif; font-size:.7rem; letter-spacing:.24em; color:#c2a878; opacity:0; }
+    .splash.run .skip{ animation:sFade .5s ease 1.5s forwards; }
 
     /* ===== #8 成就进度条 ===== */
     .ach-prog{ width:84%; height:6px; margin:6px auto 0; border-radius:4px; background:rgba(120,90,40,.22); overflow:hidden; }
@@ -326,15 +341,16 @@
   <!-- #2 启动·羊皮纸展开 -->
   <div id="splash" class="splash">
     <div class="roll">
-      <div class="scroll-rod"></div>
-      <div class="sheet">
-        <div class="inner">
-          <div class="seal">骰</div>
+      <div class="srod"></div>
+      <div class="sheet"><div class="paper">
+        <img class="seal-img" src="assets/skins/seal.png" alt="" />
+        <div class="txt">
           <h1 class="stitle">骰它</h1>
+          <div class="sgold"></div>
           <p class="ssub">把人生交给随机数</p>
         </div>
-      </div>
-      <div class="scroll-rod"></div>
+      </div></div>
+      <div class="srod"></div>
     </div>
     <p class="skip">轻触跳过</p>
   </div>
@@ -404,7 +420,7 @@
           <p class="font-roman text-xl tracking-wide text-ink-soft">交付你的命运</p>
         </div>
 
-        <button id="share-btn" class="mx-auto mb-3 hidden items-center gap-1.5 rounded-full border border-gold/60 bg-parch-2/70 px-4 py-1.5 text-xs font-bold tracking-wide text-wax-deep" style="display:none">
+        <button id="share-btn" class="mx-auto mb-3 items-center gap-1.5 rounded-full border border-gold/60 bg-parch-2/70 px-4 py-1.5 text-xs font-bold tracking-wide text-wax-deep" style="display:none">
           <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
           生成结果卡片
         </button>
@@ -1172,7 +1188,7 @@
     requestAnimationFrame(()=>sp.classList.add('run'));
     let done=false; function dismiss(){ if(done) return; done=true; sp.classList.add('gone'); setTimeout(()=>sp.remove(),600); }
     sp.addEventListener('click', dismiss);
-    setTimeout(dismiss, 2100);
+    setTimeout(dismiss, 2500);
   })();
 
   /* PWA：注册离线 Service Worker */
