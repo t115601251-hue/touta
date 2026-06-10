@@ -15,24 +15,13 @@
   <link rel="apple-touch-icon" href="icon-180.png" />
   <link rel="icon" type="image/png" href="icon-192.png" />
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Noto+Serif+SC:wght@500;700;900&display=swap" rel="stylesheet" />
-
-  <script>
-    tailwind.config = { theme: { extend: {
-      colors: {
-        parch:'#E6D9B8', 'parch-2':'#F0E8D2', ink:'#2E2A22', 'ink-soft':'#8C7F63',
-        bracket:'#4A4032', wax:'#9C3B2C', 'wax-deep':'#7E2E22', amber:'#E0962F',
-        teal:'#5FD6D0', gold:'#B69B66',
-        leather:'#5b3a24', 'leather-2':'#412816', wood:'#6b4528',
-      },
-      fontFamily: { roman:['"Cinzel"','serif'], song:['"Noto Serif SC"','"Cinzel"','serif'] },
-    } } }
-  </script>
+  <!-- #4 预编译 Tailwind（离线、体积小、启动快） -->
+  <link rel="stylesheet" href="app.css" />
 
   <style>
+    /* #5 内嵌子集化字体（离线一致观感） */
+    @font-face{ font-family:'Cinzel'; font-style:normal; font-weight:400 700; font-display:swap; src:url('assets/fonts/cinzel.woff2') format('woff2'); }
+    @font-face{ font-family:'Noto Serif SC'; font-style:normal; font-weight:400 900; font-display:swap; src:url('assets/fonts/notoserifsc.woff2') format('woff2'); }
     html, body { height:100%; }
     body {
       background-color:#E6D9B8;
@@ -239,10 +228,117 @@
       background:linear-gradient(#f3ead0,#e6d6ad); border-left:2px solid #c9b079; border-right:2px solid #c9b079; }
     .ach-pop.show .scroll-body{ max-height:260px; }
     .scroll-inner{ padding:22px 22px 26px; text-align:center; }
+
+    /* ===== #6 顶部安全区 + #7 原生手感 ===== */
+    .app-frame{ padding-top:env(safe-area-inset-top); }
+    body{ -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; touch-action:manipulation; }
+    input{ -webkit-user-select:text; user-select:text; }
+
+    /* ===== #2 启动·羊皮纸展开 ===== */
+    .splash{ position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center;
+      background-color:#E6D9B8;
+      background-image:
+        radial-gradient(120% 90% at 50% 0%, rgba(255,248,228,.6), rgba(0,0,0,0) 55%),
+        radial-gradient(130% 120% at 50% 100%, rgba(110,80,40,.22), rgba(0,0,0,0) 60%);
+      transition:opacity .5s ease; }
+    .splash.gone{ opacity:0; pointer-events:none; }
+    .splash .roll{ width:min(80%,320px); filter:drop-shadow(0 18px 30px rgba(60,40,10,.35)); }
+    .splash .sheet{ height:0; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      background:linear-gradient(#f3ead0,#e6d6ad); border-left:2px solid #c9b079; border-right:2px solid #c9b079;
+      box-shadow:inset 0 0 36px rgba(150,110,50,.2); }
+    .splash.run .sheet{ animation:sUnroll .85s cubic-bezier(.2,.8,.2,1) .15s forwards; }
+    @keyframes sUnroll{ from{height:0} to{height:250px} }
+    .splash .inner{ opacity:0; transform:translateY(10px) scale(.96); text-align:center; padding:0 20px; }
+    .splash.run .inner{ animation:sFade .55s ease .82s forwards; }
+    @keyframes sFade{ to{opacity:1; transform:none} }
+    .splash .seal{ width:78px; height:78px; margin:0 auto 12px; border-radius:50%;
+      background:radial-gradient(circle at 38% 30%, #c4402f, #7e1f15 70%, #5e120c);
+      box-shadow:0 6px 14px -4px rgba(90,12,8,.6), inset 0 2px 5px rgba(255,180,150,.5), inset 0 -5px 10px rgba(60,6,4,.6);
+      display:flex; align-items:center; justify-content:center;
+      font-family:"Noto Serif SC",serif; font-weight:900; font-size:2.4rem; color:#f6d9a0; text-shadow:0 1px 2px rgba(60,6,4,.7); }
+    .splash .stitle{ font-family:"Noto Serif SC",serif; font-weight:900; font-size:2.7rem; letter-spacing:.18em; color:#2e2a22; }
+    .splash .ssub{ margin-top:6px; font-family:"Cinzel",serif; font-size:.82rem; letter-spacing:.28em; color:#9c7a3c; }
+    .splash .skip{ position:absolute; bottom:max(26px,env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
+      font-family:"Cinzel",serif; font-size:.7rem; letter-spacing:.2em; color:#b09865; opacity:0; }
+    .splash.run .skip{ animation:sFade .5s ease 1.2s forwards; }
+
+    /* ===== #8 成就进度条 ===== */
+    .ach-prog{ width:84%; height:6px; margin:6px auto 0; border-radius:4px; background:rgba(120,90,40,.22); overflow:hidden; }
+    .ach-prog-bar{ height:100%; border-radius:4px; background:linear-gradient(90deg,#caa15a,#e0b052); }
+    .ach-pnum{ margin-top:3px; font-family:"Cinzel",serif; font-size:.62rem; color:#a3936c; }
+
+    /* ===== #9 数据可视化 ===== */
+    .chart-box{ border-radius:12px; padding:13px 15px; margin-bottom:10px;
+      background:linear-gradient(160deg,#6e4828,#3c2413); border:1px solid #2f1c0d; box-shadow:inset 0 1px 0 rgba(255,225,180,.1); }
+    .chart-h{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:9px; }
+    .chart-t{ font-family:"Noto Serif SC",serif; font-weight:700; font-size:.86rem; color:#f0d9a4; }
+    .chart-sub{ font-family:"Cinzel",serif; font-size:.66rem; color:#c9ad7e; }
+    .coinbar{ display:flex; height:24px; border-radius:8px; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(0,0,0,.3); }
+    .coinbar .seg{ display:flex; align-items:center; justify-content:center; font-family:"Cinzel",serif; font-weight:700; font-size:.72rem; color:#fff5dc; min-width:18px; transition:width .5s ease; }
+    .coinbar .h{ background:linear-gradient(180deg,#eac064,#cf9b3e); }
+    .coinbar .t{ background:linear-gradient(180deg,#9c3b2c,#6e2017); }
+    .clegend{ display:flex; justify-content:space-between; margin-top:6px; font-family:"Cinzel",serif; font-size:.68rem; color:#c9ad7e; }
+    .drow{ display:flex; align-items:center; gap:8px; margin:4px 0; }
+    .drow .k{ width:34px; text-align:right; font-family:"Cinzel",serif; font-size:.72rem; color:#c9ad7e; }
+    .drow .track{ flex:1; height:13px; border-radius:7px; background:rgba(0,0,0,.3); overflow:hidden; }
+    .drow .fill{ height:100%; border-radius:7px; background:linear-gradient(90deg,#df8e2c,#f6c45e); min-width:2px; transition:width .5s ease; }
+    .drow .v{ width:40px; font-family:"Cinzel",serif; font-size:.7rem; color:#f8db84; }
+    .vbars{ display:flex; align-items:flex-end; gap:2px; height:84px; padding:6px 6px 0; background:rgba(0,0,0,.22); border-radius:9px; }
+    .vbar{ flex:1; min-height:2px; border-radius:2px 2px 0 0; background:linear-gradient(180deg,#f6c45e,#df8e2c); transition:height .5s ease; }
+    .vbar.lo{ background:linear-gradient(180deg,#c98,#9c3b2c); }
+    .vbar.hi{ background:linear-gradient(180deg,#9be7e1,#3fb0a8); }
+    .vbars-x{ display:flex; justify-content:space-between; margin-top:4px; font-family:"Cinzel",serif; font-size:.6rem; color:#9c845c; }
+    .chart-empty{ font-size:.72rem; color:#9c845c; text-align:center; padding:8px 0; }
+
+    /* ===== 数据管理（备份码）按钮 ===== */
+    .data-tools{ display:flex; gap:10px; margin:14px 0 4px; }
+    .dt-btn{ flex:1; padding:11px 0; border-radius:11px; font-family:"Noto Serif SC",serif; font-weight:700; font-size:.84rem;
+      background:linear-gradient(180deg,#e6c98a,#caa55f); color:#3a2413; border:1px solid #9a783a; box-shadow:0 3px 7px -3px rgba(0,0,0,.5); }
+    .dt-btn.warn{ background:linear-gradient(180deg,#cf8a78,#9c4634); color:#fff2ec; border-color:#7e2e22; }
+    .dt-btn:active{ transform:translateY(1px); }
+
+    /* ===== #1/#10 通用底部弹层 ===== */
+    .sheet-modal{ position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center; padding:22px;
+      background:rgba(20,12,4,0); visibility:hidden; opacity:0; transition:opacity .3s ease, visibility .3s ease; }
+    .sheet-modal.show{ visibility:visible; opacity:1; background:rgba(20,12,4,.62); }
+    .sm-card{ width:min(94%,380px); border-radius:16px; padding:18px; transform:translateY(18px); transition:transform .3s ease;
+      background:#5b3a24; background-image:radial-gradient(circle at 30% 12%, rgba(255,230,190,.08), transparent 45%);
+      border:1px solid #2f1c0d; box-shadow:0 18px 44px -10px rgba(0,0,0,.7); }
+    .sheet-modal.show .sm-card{ transform:translateY(0); }
+    .sm-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+    .sm-title{ font-family:"Noto Serif SC",serif; font-weight:800; font-size:1.05rem; color:#f2e6c8; }
+    .sm-x{ width:30px; height:30px; border-radius:50%; background:rgba(0,0,0,.3); color:#e7c889; display:flex; align-items:center; justify-content:center; }
+    .sm-ta{ width:100%; height:104px; resize:none; border-radius:10px; padding:10px; font-size:.74rem; line-height:1.5; word-break:break-all;
+      background:rgba(0,0,0,.28); color:#f0e3c4; border:1px solid #2f1c0d; font-family:ui-monospace,Menlo,Consolas,monospace; }
+    .sm-tip{ margin-top:9px; font-size:.74rem; line-height:1.5; color:#c9ad7e; }
+    .sm-btn{ width:100%; margin-top:12px; padding:12px 0; border-radius:11px; font-family:"Noto Serif SC",serif; font-weight:700; font-size:.9rem;
+      background:linear-gradient(180deg,#e6c98a,#caa55f); color:#3a2413; border:1px solid #9a783a; }
+    .sm-btn:active{ transform:translateY(1px); }
+    .share-img{ width:100%; border-radius:12px; box-shadow:0 10px 26px -8px rgba(0,0,0,.6); display:block; }
+
+    @media (prefers-reduced-motion: reduce){
+      .splash.run .sheet{ animation-duration:.01s; } .splash.run .inner{ animation-delay:.05s; }
+    }
   </style>
 </head>
 
 <body class="font-song text-ink antialiased">
+  <!-- #2 启动·羊皮纸展开 -->
+  <div id="splash" class="splash">
+    <div class="roll">
+      <div class="scroll-rod"></div>
+      <div class="sheet">
+        <div class="inner">
+          <div class="seal">骰</div>
+          <h1 class="stitle">骰它</h1>
+          <p class="ssub">把人生交给随机数</p>
+        </div>
+      </div>
+      <div class="scroll-rod"></div>
+    </div>
+    <p class="skip">轻触跳过</p>
+  </div>
+
   <div class="app-frame relative mx-auto flex max-w-[440px] flex-col overflow-hidden">
     <div class="frame-corners"><i></i></div>
 
@@ -304,9 +400,14 @@
             class="w-full rounded-xl border border-gold/60 bg-parch-2/70 px-4 py-3 text-center text-sm text-ink placeholder:text-ink-soft focus:border-wax focus:outline-none" />
         </div>
 
-        <div id="result-box" class="mb-6 flex min-h-[3rem] items-center justify-center text-center">
+        <div id="result-box" class="mb-3 flex min-h-[3rem] items-center justify-center text-center">
           <p class="font-roman text-xl tracking-wide text-ink-soft">交付你的命运</p>
         </div>
+
+        <button id="share-btn" class="mx-auto mb-3 hidden items-center gap-1.5 rounded-full border border-gold/60 bg-parch-2/70 px-4 py-1.5 text-xs font-bold tracking-wide text-wax-deep" style="display:none">
+          <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+          生成结果卡片
+        </button>
 
         <button id="btn-roll" class="btn-stone mx-auto mb-2 block w-full max-w-[320px] rounded-xl py-4 text-center font-roman text-2xl font-bold tracking-[.25em] text-parch-2 transition">ROLL</button>
       </section>
@@ -393,6 +494,26 @@
   </div>
 
   <!-- 升级提示 -->
+  <!-- #1 备份码弹层 -->
+  <div id="backup-modal" class="sheet-modal">
+    <div class="sm-card">
+      <div class="sm-head"><span id="backup-title" class="sm-title">导出备份码</span><button id="backup-x" class="sm-x">✕</button></div>
+      <textarea id="backup-ta" class="sm-ta" spellcheck="false"></textarea>
+      <p id="backup-tip" class="sm-tip"></p>
+      <button id="backup-action" class="sm-btn">复制备份码</button>
+    </div>
+  </div>
+
+  <!-- #10 结果卡片弹层 -->
+  <div id="share-modal" class="sheet-modal">
+    <div class="sm-card">
+      <div class="sm-head"><span class="sm-title">结果卡片</span><button id="share-x" class="sm-x">✕</button></div>
+      <img id="share-img" class="share-img" alt="结果卡片" />
+      <p class="sm-tip">长按图片即可保存到相册或分享给好友。</p>
+      <button id="share-save" class="sm-btn">保存图片</button>
+    </div>
+  </div>
+
   <div id="lvl-toast" class="lvl-toast"><div class="lt-lv">LV.2 升级！</div><div class="lt-ti">【头衔】</div></div>
 
   <script>
@@ -489,14 +610,32 @@
   const CATS_ORDER=['coin','d6','d20','luck','meta','habit'];
   const CATLABEL={coin:'🪙 抛硬币',d6:'🎲 D6 骰子',d20:'🎯 D20 骰子',luck:'🎋 气运抽签',meta:'📈 等级 & 收集',habit:'⏰ 习惯 · 里程碑'};
 
+  /* #8 可量化成就的进度 [当前,目标] */
+  const ACH_PROG={
+    a_heads100:s=>[s.heads,100], a_tails100:s=>[s.tails,100], a_face5:s=>[s.coin_max_streak,5], a_face10:s=>[s.coin_max_streak,10],
+    a_coin500:s=>[s.coin_total,500], a_coin1000:s=>[s.coin_total,1000], a_cointoday20:s=>[s.coin_today,20],
+    a_666:s=>[s.d6_six_max_streak,3], a_d6one3:s=>[s.d6_one_max_streak,3], a_d6sum1000:s=>[s.d6_sum_total,1000],
+    a_six100:s=>[s.d6_six_count,100], a_d6_500:s=>[s.d6_total,500],
+    a_d20one2:s=>[s.d20_one_max_streak,2], a_d20twenty2:s=>[s.d20_twenty_max_streak,2], a_collect20:s=>[s.d20_seen.length,20],
+    a_ones10:s=>[s.d20_ones,10], a_twenties10:s=>[s.d20_twenties,10], a_icefire:s=>[Math.min(s.d20_ones,s.d20_twenties),10], a_d20_300:s=>[s.d20_total,300],
+    a_luck100total:s=>[s.luck_total,100], a_luckq10:s=>[s.luck_q_max,10], a_blocked5:s=>[s.luck_blocked,5],
+    a_high5:s=>[s.luck_high_count,5], a_low5:s=>[s.luck_low_count,5], a_luck200:s=>[s.luck_total,200],
+    a_lv5:(s,lv)=>[lv,5], a_lv10:(s,lv)=>[lv,10], a_lv20:(s,lv)=>[lv,20], a_lv30:(s,lv)=>[lv,30], a_lv50:(s,lv)=>[lv,50], a_lv90:(s,lv)=>[lv,90], a_lv100:(s,lv)=>[lv,100],
+    a_ach10:(s,lv,ac)=>[ac,10], a_ach25:(s,lv,ac)=>[ac,25], a_achall:(s,lv,ac)=>[ac,61],
+    a_rolls100:s=>[s.total_rolls,100], a_rolls1000:s=>[s.total_rolls,1000], a_rolls10000:s=>[s.total_rolls,10000],
+    a_days3:s=>[s.streak_days,3], a_days7:s=>[s.streak_days,7], a_days30:s=>[s.days_count,30],
+    a_night:s=>[s.night_rolls,10], a_morning:s=>[s.morning_rolls,10], a_today100:s=>[s.today_count,100],
+    a_allmethods:s=>[['coin','d6','d20','luck'].filter(k=>s.methods[k]).length,4],
+  };
+
   /* ====================== 本地存档 ====================== */
   const SAVE_KEY='shaita_save_v3';
   const blank={ level:1, xp:0, ach:{},
     stats:{ total_rolls:0,
       coin_total:0,heads:0,tails:0,coin_streak:0,coin_streak_face:null,coin_max_streak:0,coin_today:0,coin_today_date:null,
-      d6_total:0,d6_sum_total:0,d6_six_count:0,d6_six_streak:0,d6_six_max_streak:0,d6_one_streak:0,d6_one_max_streak:0,d6_hide_used:false,d6_used6:false,ev_daji6:false,ev_snake:false,ev_baozi:false,ev_full34:false,
-      d20_total:0,d20_ones:0,d20_twenties:0,d20_one_streak:0,d20_one_max_streak:0,d20_twenty_streak:0,d20_twenty_max_streak:0,d20_last:null,d20_seen:[],ev_rescue:false,
-      luck_total:0,luck_high_count:0,luck_low_count:0,luck_blocked:0,luck_q_max:0,ev_luck1:false,ev_luck50:false,ev_luck100:false,ev_extreme:false,luck_day_high:false,luck_day_low:false,
+      d6_total:0,d6_sum_total:0,d6_six_count:0,d6_six_streak:0,d6_six_max_streak:0,d6_one_streak:0,d6_one_max_streak:0,d6_hide_used:false,d6_used6:false,ev_daji6:false,ev_snake:false,ev_baozi:false,ev_full34:false,d6_faces:[0,0,0,0,0,0],
+      d20_total:0,d20_ones:0,d20_twenties:0,d20_one_streak:0,d20_one_max_streak:0,d20_twenty_streak:0,d20_twenty_max_streak:0,d20_last:null,d20_seen:[],ev_rescue:false,d20_faces:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      luck_total:0,luck_high_count:0,luck_low_count:0,luck_blocked:0,luck_q_max:0,ev_luck1:false,ev_luck50:false,ev_luck100:false,ev_extreme:false,luck_day_high:false,luck_day_low:false,luck_buckets:[0,0,0,0,0,0,0,0,0,0],
       methods:{coin:false,d6:false,d20:false,luck:false},
       night_rolls:0,morning_rolls:0,today_date:null,today_count:0,last_play_date:null,streak_days:0,days_list:[],days_count:0,ev_speed:false },
     inv:{skins:['default'],trinkets:[],current_skin:'default',activeRow:0},
@@ -544,6 +683,7 @@
     } else if(type==='d6'){
       const r=extra.results, cnt=r.length;
       s.d6_total++; s.d6_sum_total+=r.reduce((a,b)=>a+b,0); s.d6_six_count+=r.filter(x=>x===6).length;
+      if(s.d6_faces) r.forEach(x=>{ if(x>=1&&x<=6) s.d6_faces[x-1]++; });
       if(r[0]===6) s.d6_six_streak++; else s.d6_six_streak=0; s.d6_six_max_streak=Math.max(s.d6_six_max_streak,s.d6_six_streak);
       if(r[0]===1) s.d6_one_streak++; else s.d6_one_streak=0; s.d6_one_max_streak=Math.max(s.d6_one_max_streak,s.d6_one_streak);
       const allSame=r.every(x=>x===r[0]);
@@ -553,6 +693,7 @@
       if(cnt===6&&r.reduce((a,b)=>a+b,0)>=34) s.ev_full34=true;
     } else if(type==='d20'){
       s.d20_total++;
+      if(s.d20_faces&&val>=1&&val<=20) s.d20_faces[val-1]++;
       if(val===1){ s.d20_ones++; s.d20_one_streak++; } else s.d20_one_streak=0;
       if(val===20){ s.d20_twenties++; s.d20_twenty_streak++; } else s.d20_twenty_streak=0;
       s.d20_one_max_streak=Math.max(s.d20_one_max_streak,s.d20_one_streak);
@@ -561,6 +702,7 @@
       if(!s.d20_seen.includes(val)) s.d20_seen.push(val);
     } else if(type==='luck'){
       s.luck_total++;
+      if(s.luck_buckets){ const bi=Math.min(9,Math.max(0,Math.ceil(val/10)-1)); s.luck_buckets[bi]++; }
       if(val===100) s.ev_luck100=true; if(val===1) s.ev_luck1=true; if(val===50) s.ev_luck50=true;
       if(val>=90){ s.luck_high_count++; s.luck_day_high=true; }
       if(val<=10){ s.luck_low_count++; s.luck_day_low=true; }
@@ -596,7 +738,8 @@
   const props={ coin:document.getElementById('prop-coin'), d6:document.getElementById('prop-d6'), d20:document.getElementById('prop-d20'), luck:document.getElementById('prop-luck') };
   const HINT={ coin:'抛硬币 · 正面 or 反面', d6:'D6 骰子 · 1 ~ 6 点', d20:'D20 骰子 · 1 ~ 20 点', luck:'气运抽签 · 1% ~ 100%' };
   let current='coin';
-  function defaultResult(){ resultBox.innerHTML='<p class="font-roman text-xl tracking-wide text-ink-soft">交付你的命运</p>'; }
+  function defaultResult(){ resultBox.innerHTML='<p class="font-roman text-xl tracking-wide text-ink-soft">交付你的命运</p>';
+    const sb=document.getElementById('share-btn'); if(sb) sb.style.display='none'; }
   function selectMethod(m){
     current=m;
     mtabs.forEach(t=>t.dataset.active=(t.dataset.method===m)?'true':'false');
@@ -798,6 +941,7 @@
 
   function afterRoll(type,val,extra){
     extra=extra||{};
+    lastResult={type:type,val:val,extra:extra}; revealShare();
     updateStats(type,val,extra);
     addXP(5);                                   // 每次投掷 +5
     let hl=false;                               // ✨ 高光时刻 +30
@@ -855,15 +999,54 @@
       '<h3 class="stats-cat">'+g.label+'</h3><div class="stats-grid">'+
       g.items.map(it=>'<div class="stat-card"><div class="stat-num">'+it[1]+'</div><div class="stat-lbl">'+it[0]+'</div></div>').join('')+
       '</div>'
-    ).join('');
+    ).join('')
+    + '<h3 class="stats-cat">📈 数据图谱</h3>' + renderCharts()
+    + '<h3 class="stats-cat">🗄️ 数据管理</h3>'
+    + '<div class="data-tools"><button class="dt-btn" onclick="openBackup(\'export\')">⬆️ 导出备份码</button><button class="dt-btn warn" onclick="openBackup(\'import\')">⬇️ 导入备份码</button></div>'
+    + '<p class="sm-tip" style="margin-top:2px">换机或重装前先导出备份码，粘到微信/备忘录即可保存；新设备粘回导入即可恢复全部记录。</p>';
+  }
+  function renderCharts(){
+    const s=save.stats; let h='';
+    // 🪙 正反分布
+    h+='<div class="chart-box"><div class="chart-h"><span class="chart-t">🪙 正反分布</span><span class="chart-sub">'+s.coin_total+' 次</span></div>';
+    if(s.coin_total>0){ const ph=Math.round(s.heads/s.coin_total*100), pt=100-ph;
+      h+='<div class="coinbar"><div class="seg h" style="width:'+ph+'%">'+(ph>=12?'正 '+ph+'%':'')+'</div><div class="seg t" style="width:'+pt+'%">'+(pt>=12?'反 '+pt+'%':'')+'</div></div>'
+        +'<div class="clegend"><span>正 '+s.heads+'</span><span>反 '+s.tails+'</span></div>';
+    } else h+='<p class="chart-empty">还没有抛过硬币</p>';
+    h+='</div>';
+    // 🎲 D6 点数分布（横条）
+    h+='<div class="chart-box"><div class="chart-h"><span class="chart-t">🎲 D6 点数分布</span><span class="chart-sub">'+s.d6_total+' 次</span></div>';
+    const f6=s.d6_faces||[0,0,0,0,0,0], m6=Math.max(1,...f6);
+    if(f6.some(x=>x>0)){ for(let i=0;i<6;i++){ h+='<div class="drow"><span class="k">'+(i+1)+'</span><div class="track"><div class="fill" style="width:'+(f6[i]/m6*100)+'%"></div></div><span class="v">'+f6[i]+'</span></div>'; } }
+    else h+='<p class="chart-empty">还没有掷过 D6</p>';
+    h+='</div>';
+    // 🎯 D20 点数分布（竖条 20）
+    h+='<div class="chart-box"><div class="chart-h"><span class="chart-t">🎯 D20 点数分布</span><span class="chart-sub">'+s.d20_total+' 次</span></div>';
+    const f20=s.d20_faces||[], m20=Math.max(1,...(f20.length?f20:[1]));
+    if(f20.some&&f20.some(x=>x>0)){ h+='<div class="vbars">';
+      for(let i=0;i<20;i++){ const cls=i===0?' lo':(i===19?' hi':''); h+='<div class="vbar'+cls+'" style="height:'+Math.max(3,f20[i]/m20*100)+'%" title="'+(i+1)+': '+f20[i]+'"></div>'; }
+      h+='</div><div class="vbars-x"><span>1</span><span>10</span><span>20</span></div>';
+    } else h+='<p class="chart-empty">还没有掷过 D20</p>';
+    h+='</div>';
+    // 🎋 气运分布（10 段横条）
+    h+='<div class="chart-box"><div class="chart-h"><span class="chart-t">🎋 气运分布</span><span class="chart-sub">'+s.luck_total+' 次</span></div>';
+    const lb=s.luck_buckets||[], ml=Math.max(1,...(lb.length?lb:[1]));
+    if(lb.some&&lb.some(x=>x>0)){ for(let i=0;i<10;i++){ h+='<div class="drow"><span class="k">'+(i*10+1)+'-'+((i+1)*10)+'</span><div class="track"><div class="fill" style="width:'+(lb[i]/ml*100)+'%"></div></div><span class="v">'+lb[i]+'</span></div>'; } }
+    else h+='<p class="chart-empty">还没有抽过气运</p>';
+    h+='</div>';
+    return h;
   }
 
   /* ====================== 奖杯墙渲染 ====================== */
   function trophySVG(un){ return '<img class="trophy'+(un?'':' troph-lock')+'" src="assets/skins/trophy.webp" alt="奖杯" />'; }
   function cell(a){ const un=save.ach[a.key];
+    let prog='';
+    if(!un && ACH_PROG[a.key]){ const pr=ACH_PROG[a.key](save.stats,save.level,unlockedCount());
+      let c=Math.max(0,pr[0]), t=pr[1], pct=Math.max(0,Math.min(100,c/t*100));
+      prog='<div class="ach-prog"><div class="ach-prog-bar" style="width:'+pct+'%"></div></div><p class="ach-pnum">'+Math.min(c,t)+' / '+t+'</p>'; }
     return '<div class="ach-cell'+(un?' on':'')+'">'+trophySVG(un)+
       '<p class="ach-name">'+(un?'【'+a.name+'】':'？？？')+'</p>'+
-      '<p class="ach-cond">'+a.cond+'</p></div>'; }
+      '<p class="ach-cond">'+a.cond+'</p>'+prog+'</div>'; }
   function renderAchWall(){
     let html='';
     for(const c of CATS_ORDER){ const items=ACHIEVEMENTS.filter(a=>a.cat===c);
@@ -885,10 +1068,112 @@
   }
   function renderHomePage(){ renderLevelCard(); renderAchWall(); }
 
+  /* ====================== #1 备份码：导出/导入 ====================== */
+  const backupModal=document.getElementById('backup-modal');
+  const backupTA=document.getElementById('backup-ta');
+  const backupTip=document.getElementById('backup-tip');
+  const backupTitle=document.getElementById('backup-title');
+  const backupAction=document.getElementById('backup-action');
+  let backupMode='export';
+  function encodeSave(){ return 'SHAITA1.'+btoa(unescape(encodeURIComponent(JSON.stringify(save)))); }
+  function decodeSave(code){ code=(code||'').trim(); if(code.startsWith('SHAITA1.')) code=code.slice(8);
+    return JSON.parse(decodeURIComponent(escape(atob(code)))); }
+  window.openBackup=function(mode){ backupMode=mode; backupModal.classList.add('show');
+    if(mode==='export'){ backupTitle.textContent='导出备份码'; backupTA.value=encodeSave(); backupTA.readOnly=true;
+      backupTip.textContent='已生成备份码。点下方按钮复制，再粘到微信「文件传输助手」或备忘录长期保存。';
+      backupAction.textContent='复制备份码'; }
+    else { backupTitle.textContent='导入备份码'; backupTA.value=''; backupTA.readOnly=false;
+      backupTip.textContent='把之前导出的备份码粘贴到上面，点导入即可恢复全部记录（会覆盖当前进度）。';
+      backupAction.textContent='导入并恢复'; setTimeout(()=>backupTA.focus(),200); }
+  };
+  function closeBackup(){ backupModal.classList.remove('show'); }
+  document.getElementById('backup-x').addEventListener('click',closeBackup);
+  backupModal.addEventListener('click',e=>{ if(e.target===backupModal) closeBackup(); });
+  function copyText(t){ return (navigator.clipboard&&navigator.clipboard.writeText)
+      ? navigator.clipboard.writeText(t).catch(()=>fallbackCopy(t)) : Promise.resolve(fallbackCopy(t)); }
+  function fallbackCopy(t){ backupTA.removeAttribute('readonly'); backupTA.focus(); backupTA.select();
+    try{ document.execCommand('copy'); }catch(e){} backupTA.setAttribute('readonly','true'); return true; }
+  backupAction.addEventListener('click',function(){
+    if(backupMode==='export'){ copyText(backupTA.value).then(()=>{ backupTip.textContent='✅ 已复制到剪贴板，去粘贴保存吧！'; vibrate(20); }); }
+    else { let data; try{ data=decodeSave(backupTA.value); }catch(e){ backupTip.textContent='❌ 备份码无效或残缺，请重新复制完整内容。'; return; }
+      if(!data||typeof data!=='object'||!data.stats){ backupTip.textContent='❌ 备份码内容不是有效的骰它存档。'; return; }
+      save=data; (function fill(dst,def){ for(const k in def){ const dv=def[k];
+        if(dv&&typeof dv==='object'&&!Array.isArray(dv)){ if(typeof dst[k]!=='object'||!dst[k]) dst[k]={}; fill(dst[k],dv); }
+        else if(!(k in dst)) dst[k]=JSON.parse(JSON.stringify(dv)); } })(save,blank);
+      ACHIEVEMENTS.forEach(a=>{ if(!(a.key in save.ach)) save.ach[a.key]=false; });
+      persist(); applySkin(); renderStats(); backupTip.textContent='✅ 导入成功！记录已恢复。'; vibrate(40);
+      setTimeout(closeBackup,900); }
+  });
+
+  /* ====================== #10 结果卡片（canvas 绘制） ====================== */
+  let lastResult=null;
+  const shareBtn=document.getElementById('share-btn');
+  const shareModal=document.getElementById('share-modal');
+  const shareImg=document.getElementById('share-img');
+  function revealShare(){ if(shareBtn){ shareBtn.style.display='inline-flex'; } }
+  shareBtn.addEventListener('click', drawShareCard);
+  document.getElementById('share-x').addEventListener('click',()=>shareModal.classList.remove('show'));
+  shareModal.addEventListener('click',e=>{ if(e.target===shareModal) shareModal.classList.remove('show'); });
+  function cardTexts(){
+    if(!lastResult) return null; const {type,val,extra}=lastResult;
+    if(type==='coin') return {tag:'抛硬币',big:(val==='H'?'正面':'反面'),sub:'天命已定'};
+    if(type==='d6'){ const r=extra.results||[val]; const sum=r.reduce((a,b)=>a+b,0);
+      return {tag:'D6 骰子',big:r.length>1?String(sum):String(r[0]),sub:r.length>1?r.join(' + '):'点数'}; }
+    if(type==='d20') return {tag:'D20 骰子',big:String(val),sub:val===20?'大成功！':(val===1?'大失败…':'命运点数')};
+    if(type==='luck') return {tag:'气运抽签',big:val+'%',sub:(extra&&extra.ev)?('所问：'+extra.ev):'今日成功率'};
+    return null;
+  }
+  function rr(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function drawShareCard(){
+    const t=cardTexts(); if(!t) return;
+    const W=720,H=960,cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+    const x=cv.getContext('2d');
+    // 羊皮纸底
+    let g=x.createLinearGradient(0,0,0,H); g.addColorStop(0,'#efe3c4'); g.addColorStop(1,'#e2d2ac'); x.fillStyle=g; x.fillRect(0,0,W,H);
+    // 暗角
+    let rg=x.createRadialGradient(W/2,H*0.42,120,W/2,H*0.42,H*0.7); rg.addColorStop(0,'rgba(0,0,0,0)'); rg.addColorStop(1,'rgba(90,60,20,.22)'); x.fillStyle=rg; x.fillRect(0,0,W,H);
+    // 噪点斑渍
+    for(let i=0;i<60;i++){ const px=(i*131%W), py=((i*197+60)%H), r=8+(i*53%26); x.fillStyle='rgba(120,90,40,'+(0.015+(i%5)*0.006)+')'; x.beginPath(); x.arc(px,py,r,0,6.283); x.fill(); }
+    // 描边框
+    x.strokeStyle='#b69b66'; x.lineWidth=3; rr(x,34,34,W-68,H-68,18); x.stroke();
+    x.strokeStyle='rgba(182,155,102,.5)'; x.lineWidth=1.5; rr(x,48,48,W-96,H-96,12); x.stroke();
+    x.textAlign='center';
+    // 顶部品牌
+    x.fillStyle='#9c7a3c'; x.font='600 30px Cinzel, serif'; x.fillText('S H A I T A', W/2, 120);
+    x.fillStyle='#2e2a22'; x.font='900 64px "Noto Serif SC", serif'; x.fillText('骰  它', W/2, 196);
+    // 标签徽章
+    x.fillStyle='#9c3b2c'; rr(x,W/2-110,236,220,52,26); x.fill();
+    x.fillStyle='#f6e3bf'; x.font='700 30px "Noto Serif SC", serif'; x.fillText(t.tag, W/2, 272);
+    // 大结果
+    x.fillStyle='#7e2e22';
+    const big=t.big, fs = big.length<=2?260:(big.length<=4?180:130);
+    x.font='900 '+fs+'px "Noto Serif SC", Cinzel, serif'; x.fillText(big, W/2, H*0.56);
+    // 副标题
+    x.fillStyle='#5a4a2a'; x.font='700 34px "Noto Serif SC", serif';
+    let sub=t.sub; if(sub.length>16) sub=sub.slice(0,15)+'…'; x.fillText(sub, W/2, H*0.56+90);
+    // 分隔线
+    x.strokeStyle='rgba(150,118,66,.5)'; x.lineWidth=2; x.beginPath(); x.moveTo(W/2-90,H-210); x.lineTo(W/2+90,H-210); x.stroke();
+    // 日期 + slogan
+    const d=new Date(); const ds=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');
+    x.fillStyle='#8c7f63'; x.font='500 28px Cinzel, serif'; x.fillText(ds, W/2, H-150);
+    x.fillStyle='#9c7a3c'; x.font='700 30px "Noto Serif SC", serif'; x.fillText('把人生交给随机数', W/2, H-100);
+    let url; try{ url=cv.toDataURL('image/png'); }catch(e){ return; }
+    shareImg.src=url; shareModal.classList.add('show');
+    document.getElementById('share-save').onclick=function(){ try{ const a=document.createElement('a'); a.href=url; a.download='骰它-'+ds+'.png'; document.body.appendChild(a); a.click(); a.remove(); }catch(e){} };
+  }
+
   /* ====================== 启动 ====================== */
   applySkin();
   showPage('page-cast');
   selectMethod('coin');
+
+  /* #2 启动·羊皮纸展开动画 */
+  (function(){ const sp=document.getElementById('splash'); if(!sp) return;
+    requestAnimationFrame(()=>sp.classList.add('run'));
+    let done=false; function dismiss(){ if(done) return; done=true; sp.classList.add('gone'); setTimeout(()=>sp.remove(),600); }
+    sp.addEventListener('click', dismiss);
+    setTimeout(dismiss, 2100);
+  })();
 
   /* PWA：注册离线 Service Worker */
   if('serviceWorker' in navigator){
