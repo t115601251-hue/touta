@@ -330,6 +330,19 @@
       background:linear-gradient(180deg,#e6c98a,#caa55f); color:#3a2413; border:1px solid #9a783a; }
     .sm-btn:active{ transform:translateY(1px); }
     .share-img{ width:100%; border-radius:12px; box-shadow:0 10px 26px -8px rgba(0,0,0,.6); display:block; }
+    /* 头衔图鉴 */
+    .lv-list{ max-height:60vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+    .lv-row{ display:flex; align-items:center; gap:11px; padding:9px 6px; border-bottom:1px solid rgba(150,112,58,.22); }
+    .lv-row:last-child{ border-bottom:0; }
+    .lv-badge{ flex:none; min-width:54px; text-align:center; padding:5px 0; border-radius:9px; font-family:"Cinzel",serif; font-weight:700; font-size:.78rem;
+      background:rgba(0,0,0,.28); color:#c9ad7e; border:1px solid #2f1c0d; }
+    .lv-row.on .lv-badge{ background:linear-gradient(180deg,#eac064,#cf9b3e); color:#3a2413; border-color:#9a783a; }
+    .lv-row.cur .lv-badge{ box-shadow:0 0 0 2px rgba(95,214,208,.8); }
+    .lv-info{ flex:1; min-width:0; }
+    .lv-name{ font-family:"Noto Serif SC",serif; font-weight:800; font-size:.95rem; color:#f2e6c8; }
+    .lv-row:not(.on) .lv-name{ color:#9c845c; letter-spacing:.1em; }
+    .lv-desc{ margin-top:2px; font-size:.7rem; line-height:1.35; color:#c9ad7e; }
+    .lv-cur-tag{ flex:none; font-family:"Noto Serif SC",serif; font-size:.66rem; font-weight:700; color:#0c6b66; background:rgba(95,214,208,.18); padding:2px 7px; border-radius:6px; }
 
     @media (prefers-reduced-motion: reduce){
       .splash.run .sheet{ animation-duration:.01s; } .splash.run .inner{ animation-delay:.05s; }
@@ -441,11 +454,14 @@
       <!-- ===== 登记处 ===== -->
       <section id="page-home" class="page-enter hidden pt-12">
         <header class="text-center">
-          <h2 class="flex items-baseline justify-center gap-4">
-            <span id="home-lv" class="font-roman text-4xl font-bold text-ink">LV.1</span>
-            <span id="home-title" class="font-song text-3xl font-black tracking-wide">纠结怪完全体</span>
-          </h2>
-          <p id="home-desc" class="mt-2 text-xs tracking-wide text-ink-soft">点外卖都要想半小时的重度内耗野生人类</p>
+          <button id="lv-head" class="mx-auto block w-full" onclick="openLevels()">
+            <h2 class="flex items-baseline justify-center gap-4">
+              <span id="home-lv" class="font-roman text-4xl font-bold text-ink">LV.1</span>
+              <span id="home-title" class="font-song text-3xl font-black tracking-wide">纠结怪完全体</span>
+            </h2>
+            <p id="home-desc" class="mt-2 text-xs tracking-wide text-ink-soft">点外卖都要想半小时的重度内耗野生人类</p>
+            <span class="mt-1 inline-block text-[11px] tracking-wide text-wax/80">▾ 点此查看全部头衔</span>
+          </button>
         </header>
         <div class="mx-auto mt-6 max-w-[340px]">
           <div style="position:relative;height:24px;border-radius:999px;background:linear-gradient(180deg,#f3ecd9,#e2d6b8);border:2px solid #c4b288;box-shadow:inset 0 2px 5px rgba(0,0,0,.18);overflow:hidden">
@@ -456,7 +472,7 @@
 
         <div class="mb-3 mt-10 flex items-baseline justify-between">
           <h3 class="font-song text-2xl font-black tracking-widest">成就殿堂</h3>
-          <span id="ach-total" class="font-roman text-sm text-ink-soft">0 / 62</span>
+          <span id="ach-total" class="font-roman text-sm text-ink-soft">0 / 63</span>
         </div>
         <div id="trophy-wall" class="flex flex-col"></div>
         <div class="h-6"></div>
@@ -527,6 +543,15 @@
       <img id="share-img" class="share-img" alt="结果卡片" />
       <p class="sm-tip">长按图片即可保存到相册或分享给好友。</p>
       <button id="share-save" class="sm-btn">保存图片</button>
+    </div>
+  </div>
+
+  <!-- 全部头衔弹层 -->
+  <div id="levels-modal" class="sheet-modal">
+    <div class="sm-card">
+      <div class="sm-head"><span class="sm-title">头衔图鉴 · 共 11 阶</span><button id="levels-x" class="sm-x">✕</button></div>
+      <div id="levels-list" class="lv-list"></div>
+      <p class="sm-tip">未达到的阶位以 ??? 隐藏，升到对应等级即自动揭晓。</p>
     </div>
   </div>
 
@@ -608,7 +633,8 @@
     {key:'a_lv100',cat:'meta',name:'天命甲方爸爸',cond:'达到 LV.100（满级）',f:(s,lv)=>lv>=100},
     {key:'a_ach10',cat:'meta',name:'成就萌新',cond:'解锁 10 个成就',f:(s,lv,ac)=>ac>=10},
     {key:'a_ach25',cat:'meta',name:'成就猎人',cond:'解锁 25 个成就',f:(s,lv,ac)=>ac>=25},
-    {key:'a_achall',cat:'meta',name:'全图鉴大佬',cond:'解锁全部成就',f:(s,lv,ac)=>ac>=61},
+    {key:'a_peek10',cat:'meta',name:'强迫症犯了',cond:'一天内反复查看数据/成就 10 次以上',f:s=>s.page_peek_count>=10},
+    {key:'a_achall',cat:'meta',name:'全图鉴大佬',cond:'解锁全部成就',f:(s,lv,ac)=>ac>=62},
     // ⏰ 习惯 · 里程碑
     {key:'a_rolls100',cat:'habit',name:'无情的无理取闹',cond:'累计投掷 100 次',f:s=>s.total_rolls>=100},
     {key:'a_rolls1000',cat:'habit',name:'千锤百炼',cond:'累计投掷 1,000 次',f:s=>s.total_rolls>=1000},
@@ -637,7 +663,7 @@
     a_luck100total:s=>[s.luck_total,100], a_luckq10:s=>[s.luck_q_max,10], a_blocked5:s=>[s.luck_blocked,5],
     a_high5:s=>[s.luck_high_count,5], a_low5:s=>[s.luck_low_count,5], a_luck200:s=>[s.luck_total,200],
     a_lv5:(s,lv)=>[lv,5], a_lv10:(s,lv)=>[lv,10], a_lv20:(s,lv)=>[lv,20], a_lv30:(s,lv)=>[lv,30], a_lv50:(s,lv)=>[lv,50], a_lv90:(s,lv)=>[lv,90], a_lv100:(s,lv)=>[lv,100],
-    a_ach10:(s,lv,ac)=>[ac,10], a_ach25:(s,lv,ac)=>[ac,25], a_achall:(s,lv,ac)=>[ac,61],
+    a_ach10:(s,lv,ac)=>[ac,10], a_ach25:(s,lv,ac)=>[ac,25], a_achall:(s,lv,ac)=>[ac,62], a_peek10:s=>[s.page_peek_count,10],
     a_rolls100:s=>[s.total_rolls,100], a_rolls1000:s=>[s.total_rolls,1000], a_rolls10000:s=>[s.total_rolls,10000],
     a_days3:s=>[s.streak_days,3], a_days7:s=>[s.streak_days,7], a_days30:s=>[s.days_count,30],
     a_night:s=>[s.night_rolls,10], a_morning:s=>[s.morning_rolls,10], a_today100:s=>[s.today_count,100],
@@ -653,7 +679,8 @@
       d20_total:0,d20_ones:0,d20_twenties:0,d20_one_streak:0,d20_one_max_streak:0,d20_twenty_streak:0,d20_twenty_max_streak:0,d20_last:null,d20_seen:[],ev_rescue:false,d20_faces:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
       luck_total:0,luck_high_count:0,luck_low_count:0,luck_blocked:0,luck_q_max:0,ev_luck1:false,ev_luck50:false,ev_luck100:false,ev_extreme:false,luck_day_high:false,luck_day_low:false,luck_buckets:[0,0,0,0,0,0,0,0,0,0],
       methods:{coin:false,d6:false,d20:false,luck:false},
-      night_rolls:0,morning_rolls:0,today_date:null,today_count:0,last_play_date:null,streak_days:0,days_list:[],days_count:0,ev_speed:false },
+      night_rolls:0,morning_rolls:0,today_date:null,today_count:0,last_play_date:null,streak_days:0,days_list:[],days_count:0,ev_speed:false,
+      page_peek_date:null,page_peek_count:0 },
     inv:{skins:['default'],trinkets:[],current_skin:'default',activeRow:0},
     luckAsked:{} };
   ACHIEVEMENTS.forEach(a=>blank.ach[a.key]=false);
@@ -743,6 +770,13 @@
     navItems.forEach(b=>b.dataset.active=(b.dataset.page===id)?'true':'false');
     if(id==='page-bag') renderStats();
     if(id==='page-home') renderHomePage();
+    if(id==='page-bag'||id==='page-home') countPeek();   // 强迫症巡场成就
+  }
+  function countPeek(){
+    const s=save.stats, today=todayStr();
+    if(s.page_peek_date!==today){ s.page_peek_date=today; s.page_peek_count=0; }
+    s.page_peek_count++;
+    evalAchievements(); persist();
   }
   navItems.forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
 
@@ -1083,6 +1117,25 @@
       bar.style.width=Math.max(0,Math.min(100,into/need*100))+'%'; xt.textContent=into+' / '+need+' XP'; }
   }
   function renderHomePage(){ renderLevelCard(); renderAchWall(); }
+
+  /* ====================== 头衔图鉴弹层 ====================== */
+  function renderLevelsList(){
+    const cur=save.level;
+    document.getElementById('levels-list').innerHTML = LEVELS.map((t,i)=>{
+      const next=(i<LEVELS.length-1)?LEVELS[i+1].min-1:100;
+      const range=(t.min===next)?('LV.'+t.min):('LV.'+t.min+'–'+next);
+      const reached=cur>=t.min, isCur=reached&&cur<=next;
+      return '<div class="lv-row'+(reached?' on':'')+(isCur?' cur':'')+'">'
+        +'<span class="lv-badge">'+range+'</span>'
+        +'<div class="lv-info"><div class="lv-name">'+(reached?t.title:'？？？')+'</div>'
+        +'<div class="lv-desc">'+(reached?t.desc:('达到 LV.'+t.min+' 解锁头衔'))+'</div></div>'
+        +(isCur?'<span class="lv-cur-tag">当前</span>':'')+'</div>';
+    }).join('');
+  }
+  window.openLevels=function(){ renderLevelsList(); document.getElementById('levels-modal').classList.add('show'); };
+  function closeLevels(){ document.getElementById('levels-modal').classList.remove('show'); }
+  document.getElementById('levels-x').addEventListener('click',closeLevels);
+  document.getElementById('levels-modal').addEventListener('click',e=>{ if(e.target.id==='levels-modal') closeLevels(); });
 
   /* ====================== #1 备份码：导出/导入 ====================== */
   const backupModal=document.getElementById('backup-modal');
