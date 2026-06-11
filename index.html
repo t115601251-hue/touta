@@ -147,6 +147,15 @@
     .f-xiaoxiong{ color:#48402f; background:linear-gradient(180deg,#cdbf9f,#a89a78); }
     .f-zhongxiong{ color:#e6dcc2; background:linear-gradient(180deg,#5a4f3c,#3a3328); }
     .f-daxiong{ color:#e2d4b6; background:linear-gradient(180deg,#3a352c,#1b1712); }
+    /* 签牌上的吉凶（刻字效果） */
+    .stick-label{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      font-family:"Noto Serif SC",serif; font-weight:900; font-size:1.6rem; letter-spacing:.18em; padding-bottom:3px;
+      color:#f2d385; text-shadow:0 1px 1px rgba(40,18,4,.95), 0 0 8px rgba(255,205,110,.35), 0 -1px 0 rgba(150,90,30,.55);
+      opacity:0; transition:opacity .45s ease; pointer-events:none; }
+    .stick-label.show{ opacity:1; }
+    .stick-label.t-ji{ color:#f5da88; }
+    .stick-label.t-ping{ color:#edcb8d; }
+    .stick-label.t-xiong{ color:#e3aa7c; text-shadow:0 1px 1px rgba(40,18,4,.95), 0 0 8px rgba(200,110,60,.4), 0 -1px 0 rgba(150,80,30,.55); }
 
     /* ===== 冒险背包：皮革 ===== */
     .leather{ background-color:#4a2f1b;
@@ -1127,18 +1136,20 @@
       tubeSvg.classList.remove('shake-tube'); void tubeSvg.offsetWidth; tubeSvg.classList.add('shake-tube');
       const ft = res.safe ? null : fortuneFor(n);
       const sayLine = res.safe ? res.safeMsg : (ft?ft.saying:'');
+      const tone = ft ? (ft.label.indexOf('吉')>=0?'t-ji':(ft.label.indexOf('凶')>=0?'t-xiong':'t-ping')) : '';
       setTimeout(()=>{ vibrate(30);   // 摇动途中，签掉落到下方
         if(ev){ save.luckAsked[day]=save.luckAsked[day]||{}; save.luckAsked[day][ev]=n; }
         resultBox.innerHTML='<div class="luck-col">'
-          +'<div class="luck-stick" id="luckStick"><img class="stick-img" src="assets/skins/stick.webp" alt="签"></div>'
+          +'<div class="luck-stick" id="luckStick"><img class="stick-img" src="assets/skins/stick.webp" alt="签">'
+          +(ft?'<span class="stick-label '+tone+'" id="stickLabel">'+ft.label+'</span>':'')+'</div>'
           +'<p class="luck-tip" id="luckTip">👆 轻触签子，揭晓签文</p>'
           +'<div class="fortune" id="fortuneBox" style="display:none">'
-          +(ft?'<div class="ft-label '+ft.cls+'">'+ft.label+'</div>':'')
           +'<div class="ft-pct">成功率 '+n+'%</div>'
           +(sayLine?'<p class="ft-say">'+sayLine+'</p>':'')
           +'</div></div>';
         const ls=document.getElementById('luckStick');
         ls.onclick=function(){
+          const sl=document.getElementById('stickLabel'); if(sl) sl.classList.add('show');
           const fb=document.getElementById('fortuneBox'); if(fb) fb.style.display='flex';
           const t=document.getElementById('luckTip'); if(t) t.style.display='none'; };
         ls.animate([                                  // 由小变大从筒里飞到下方（JS 动画，稳定可见）
