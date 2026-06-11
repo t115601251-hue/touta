@@ -134,6 +134,19 @@
       box-shadow:0 3px 7px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,235,170,.35); animation:chipPop .4s cubic-bezier(.2,1.5,.4,1); }
     @keyframes chipPop{ from{opacity:0; transform:scale(.5)} to{opacity:1; transform:scale(1)} }
     .luck-flavor{ margin-top:8px; max-width:280px; text-align:center; font-family:"Noto Serif SC",serif; font-size:.78rem; line-height:1.5; color:#7e2e22; animation:pop .4s ease; }
+    /* 签文吉凶 */
+    .fortune{ display:flex; flex-direction:column; align-items:center; gap:4px; animation:pop .42s cubic-bezier(.2,1.45,.4,1); }
+    .ft-label{ font-family:"Noto Serif SC",serif; font-weight:900; font-size:2.3rem; letter-spacing:.16em; line-height:1.1; padding:3px 22px; border-radius:13px;
+      box-shadow:0 3px 9px -3px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.25); }
+    .ft-pct{ font-family:"Cinzel",serif; font-size:.8rem; letter-spacing:.05em; color:#8c7f63; }
+    .ft-say{ margin-top:5px; max-width:284px; text-align:center; font-family:"Noto Serif SC",serif; font-size:.86rem; line-height:1.65; color:#5a4326; }
+    .f-daji{ color:#fff3d2; background:linear-gradient(180deg,#c8342a,#7e1f15); }
+    .f-zhongji{ color:#6e2017; background:linear-gradient(180deg,#f6d98a,#e0b052); }
+    .f-xiaoji{ color:#7e2e22; background:linear-gradient(180deg,#f3e3bb,#e6cd8e); }
+    .f-ping{ color:#5a4a2a; background:linear-gradient(180deg,#e6dcc2,#d3c39a); }
+    .f-xiaoxiong{ color:#48402f; background:linear-gradient(180deg,#cdbf9f,#a89a78); }
+    .f-zhongxiong{ color:#e6dcc2; background:linear-gradient(180deg,#5a4f3c,#3a3328); }
+    .f-daxiong{ color:#e2d4b6; background:linear-gradient(180deg,#3a352c,#1b1712); }
 
     /* ===== 冒险背包：皮革 ===== */
     .leather{ background-color:#4a2f1b;
@@ -170,8 +183,12 @@
     .troph-name{ margin-top:6px; font-weight:700; font-size:.8rem; }
     .troph-name.lock{ color:#8C7F63; } .troph-hint{ font-size:10px; color:#9a8f73; text-align:center; line-height:1.3; margin-top:2px; }
     /* ===== 成就墙（分类网格）===== */
-    .ach-cat{ display:flex; justify-content:space-between; align-items:center; margin:18px 0 9px; padding-bottom:5px; border-bottom:1px solid #d8c69e;
+    .ach-cat{ display:flex; justify-content:space-between; align-items:center; width:100%; margin:18px 0 9px; padding-bottom:5px; border-bottom:1px solid #d8c69e;
+      background:transparent; cursor:pointer; text-align:left;
       font-family:"Noto Serif SC",serif; font-weight:700; font-size:1rem; color:#5a3a1a; }
+    .ach-cat-l{ display:flex; align-items:center; gap:7px; }
+    .ach-chev{ display:inline-block; font-size:.78rem; color:#9c8a5c; transition:transform .2s; }
+    .ach-chev.col{ transform:rotate(-90deg); }
     .ach-cat-n{ font-family:"Cinzel",serif; font-size:.78rem; color:#9c8a5c; }
     .ach-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
     .ach-cell{ display:flex; flex-direction:column; align-items:center; text-align:center; padding:10px 6px 8px; border-radius:12px;
@@ -243,9 +260,9 @@
     .splash.gone{ opacity:0; pointer-events:none; }
     .splash .roll{ width:min(78%,308px); filter:drop-shadow(0 26px 40px rgba(0,0,0,.6)); }
     /* 木轴（上下） */
-    .srod{ position:relative; z-index:3; height:26px; margin:0 -12px; border-radius:13px;
-      background:linear-gradient(180deg,#ecc888,#b07f3e 42%,#7a4f24 78%,#5e3c1b);
-      box-shadow:0 5px 12px rgba(0,0,0,.55), inset 0 3px 0 rgba(255,242,205,.6), inset 0 -5px 7px rgba(60,32,8,.55); }
+    .srod{ position:relative; z-index:3; height:27px; margin:0 -12px; border-radius:14px;
+      background:repeating-linear-gradient(90deg, rgba(60,32,8,.16) 0 1px, transparent 1px 8px), linear-gradient(180deg,#f0cf90,#b07f3e 42%,#754a22 80%,#583718);
+      box-shadow:0 6px 13px rgba(0,0,0,.55), inset 0 3px 0 rgba(255,244,210,.65), inset 0 -5px 7px rgba(55,30,8,.6); }
     .srod::before,.srod::after{ content:""; position:absolute; top:50%; transform:translateY(-50%); width:24px; height:36px; border-radius:7px;
       background:radial-gradient(circle at 38% 32%, #f2d79e, #9a6630 72%, #6e451f);
       box-shadow:0 3px 7px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,240,205,.5); }
@@ -253,17 +270,24 @@
     /* 羊皮卷纸（带噪点纹理 + 暗角 + 内描边） */
     .splash .sheet{ height:0; overflow:hidden; }
     .splash.run .sheet{ animation:sUnroll 1s cubic-bezier(.2,.82,.22,1) .12s forwards; }
-    @keyframes sUnroll{ from{height:0} to{height:344px} }
-    .paper{ position:relative; height:344px; display:flex; flex-direction:column; align-items:center; justify-content:center;
-      border-left:3px solid #c6a35e; border-right:3px solid #c6a35e; background-color:#ead9af;
+    @keyframes sUnroll{ from{height:0} to{height:352px} }
+    .paper{ position:relative; height:352px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      border-left:3px solid #c6a35e; border-right:3px solid #c6a35e; background-color:#ecdcb2;
       background-image:
-        radial-gradient(125% 80% at 50% 0%, rgba(255,250,228,.85), rgba(0,0,0,0) 58%),
-        radial-gradient(60% 42% at 16% 20%, rgba(150,110,55,.22), transparent 62%),
-        radial-gradient(58% 40% at 86% 84%, rgba(120,84,42,.26), transparent 62%),
-        radial-gradient(72% 58% at 50% 52%, rgba(90,60,25,0) 58%, rgba(80,52,20,.28) 100%),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
-      box-shadow:inset 0 0 60px rgba(110,72,28,.4), inset 0 14px 22px -14px rgba(60,38,12,.7), inset 0 -14px 22px -14px rgba(60,38,12,.7); }
-    .paper::before{ content:""; position:absolute; inset:11px; border:1.5px solid rgba(150,112,58,.45); border-radius:3px; pointer-events:none; }
+        linear-gradient(180deg, rgba(66,42,14,.55), rgba(66,42,14,0) 8%),
+        linear-gradient(0deg, rgba(66,42,14,.55), rgba(66,42,14,0) 8%),
+        radial-gradient(130% 75% at 50% -6%, rgba(255,251,232,.92), rgba(0,0,0,0) 52%),
+        radial-gradient(48% 34% at 50% 45%, rgba(255,244,206,.5), transparent 72%),
+        radial-gradient(44% 32% at 14% 16%, rgba(140,100,48,.26), transparent 60%),
+        radial-gradient(42% 30% at 88% 18%, rgba(120,84,42,.22), transparent 60%),
+        radial-gradient(44% 32% at 16% 86%, rgba(120,84,42,.24), transparent 60%),
+        radial-gradient(44% 32% at 86% 84%, rgba(110,76,38,.26), transparent 60%),
+        radial-gradient(125% 100% at 50% 50%, rgba(80,52,20,0) 56%, rgba(70,46,18,.34) 100%),
+        repeating-linear-gradient(0deg, rgba(120,86,40,.045) 0 2px, transparent 2px 5px),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+      box-shadow:inset 0 0 65px rgba(110,72,28,.42), inset 0 16px 24px -16px rgba(55,34,10,.8), inset 0 -16px 24px -16px rgba(55,34,10,.8); }
+    .paper::before{ content:""; position:absolute; inset:10px; border:1.5px solid rgba(150,112,58,.5); border-radius:3px; pointer-events:none;
+      box-shadow:inset 0 0 0 1px rgba(255,248,220,.22), 0 0 0 3px rgba(150,112,58,.16); }
     .seal-img{ width:140px; height:auto; opacity:0; transform:scale(1.55); filter:drop-shadow(0 12px 16px rgba(70,10,6,.55)); }
     .splash.run .seal-img{ animation:sStamp .52s cubic-bezier(.32,1.5,.42,1) .92s forwards; }
     @keyframes sStamp{ 0%{opacity:0; transform:scale(1.6) rotate(-6deg)} 55%{opacity:1; transform:scale(.93) rotate(1.5deg)} 100%{opacity:1; transform:scale(1) rotate(0)} }
@@ -305,6 +329,11 @@
     .vbar.hi{ background:linear-gradient(180deg,#9be7e1,#3fb0a8); }
     .vbars-x{ display:flex; justify-content:space-between; margin-top:4px; font-family:"Cinzel",serif; font-size:.6rem; color:#9c845c; }
     .chart-empty{ font-size:.72rem; color:#9c845c; text-align:center; padding:8px 0; }
+    .chart-note{ margin-top:7px; font-size:.64rem; line-height:1.4; color:#9c845c; }
+    .pat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:7px; }
+    .pat{ text-align:center; padding:9px 4px; border-radius:9px; background:rgba(0,0,0,.24); border:1px solid #2f1c0d; }
+    .pat-n{ font-family:"Cinzel",serif; font-weight:700; font-size:1.3rem; color:#f8db84; line-height:1; }
+    .pat-l{ margin-top:4px; font-size:.64rem; color:#c9ad7e; }
 
     /* ===== 数据管理（备份码）按钮 ===== */
     .data-tools{ display:flex; gap:10px; margin:14px 0 4px; }
@@ -353,7 +382,7 @@
     .lv-name{ font-family:"Noto Serif SC",serif; font-weight:800; font-size:.95rem; color:#f2e6c8; }
     .lv-row:not(.on) .lv-name{ color:#9c845c; letter-spacing:.1em; }
     .lv-desc{ margin-top:2px; font-size:.7rem; line-height:1.35; color:#c9ad7e; }
-    .lv-cur-tag{ flex:none; font-family:"Noto Serif SC",serif; font-size:.66rem; font-weight:700; color:#0c6b66; background:rgba(95,214,208,.18); padding:2px 7px; border-radius:6px; }
+    .lv-cur-tag{ flex:none; font-family:"Noto Serif SC",serif; font-size:.68rem; font-weight:800; color:#3a2413; background:linear-gradient(180deg,#f6d98a,#e0b052); border:1px solid #b88a3a; padding:2px 9px; border-radius:7px; box-shadow:0 1px 3px rgba(0,0,0,.35); }
 
     @media (prefers-reduced-motion: reduce){
       .splash.run .sheet{ animation-duration:.01s; } .splash.run .inner{ animation-delay:.05s; }
@@ -700,7 +729,9 @@
       methods:{coin:false,d6:false,d20:false,luck:false},
       night_rolls:0,morning_rolls:0,today_date:null,today_count:0,last_play_date:null,streak_days:0,days_list:[],days_count:0,ev_speed:false,
       page_peek_date:null,page_peek_count:0,
-      luck_daily_wish:0,ev_wish_absurd:false,ev_wish_greed:false,ev_effort_high:false,ev_absurd_high:false,ev_absurd_low:false,ev_daily_super:false },
+      luck_daily_wish:0,ev_wish_absurd:false,ev_wish_greed:false,ev_effort_high:false,ev_absurd_high:false,ev_absurd_low:false,ev_daily_super:false,
+      d6_baozi_count:0,d6_shunzi_count:0,d6_allsix_count:0,d6_snake_count:0,
+      luck_wish_small:0,luck_wish_big:0,luck_wish_impossible:0 },
     inv:{skins:['default'],trinkets:[],current_skin:'default',activeRow:0},
     settings:{luckBias:true,luckFlavor:true},
     luckAsked:{} };
@@ -764,21 +795,24 @@
     const over=Math.max(0,norm.length-12); b-=Math.min(12, Math.round(over*1.5));
     return b;
   }
-  function flavorFor(mean,pct){
-    if(pct>=96) return '📜 天命大开，万事可期。';
-    if(mean<=22 && pct>=70) return '📜 离谱的愿望，竟撞上离谱的好运。';
-    if(mean<=22 && pct<=22) return '📜 天机似乎不太看好这桩宏愿……';
-    if(mean>=78 && pct<=25) return '📜 顺天的小愿也会落空，命也。';
-    if(mean>=78) return '📜 顺天而行，签面颇为和善。';
-    if(pct<=4) return '📜 大凶，避其锋芒。';
-    return null;
-  }
+  // 签文吉凶分级 + 云里雾里的高人话术
+  const FORTUNE=[
+    {min:88,label:'大吉',cls:'f-daji',say:['紫气东来，所求皆应，放手去做便是。','天时地利俱在，正是乘风破浪之兆。','云开见日，万象更新，此乃上上之签。','顺水又顺风，神明亦为你让路。','签面无云，前路坦荡，宜进不宜疑。']},
+    {min:72,label:'中吉',cls:'f-zhongji',say:['风向已转，谋事七分在天，三分在人。','佳音在途，稍安勿躁，水到自然渠成。','时机渐熟，缓步前行者得之。','吉中带稳，不必急于一时。','贵人在侧，开口相求未必不成。']},
+    {min:56,label:'小吉',cls:'f-xiaoji',say:['微光初现，谋事可成其半。','小有顺遂，积小胜可为大胜。','签面温和，宜守正而待时。','云层渐薄，再候片刻自有转机。','心诚则灵，三分把握亦可一试。']},
+    {min:45,label:'平',cls:'f-ping',say:['天意未明，签悬于半空，进退皆可。','不吉不凶，全看你这一念之间。','水面无波亦无澜，平常心便是上签。','天机含糊其辞，此事尚在两可之间。','签无定数，你心安处即是吉处。']},
+    {min:30,label:'小凶',cls:'f-xiaoxiong',say:['薄云遮日，宜缓不宜急。','签面微沉，三思而后动。','小有阻滞，避其锋芒可也。','逆风初起，收帆为上策。','此时不宜强出头，且按下心绪。']},
+    {min:15,label:'中凶',cls:'f-zhongxiong',say:['乌云压境，此时不宜强求。','签面晦暗，退一步方海阔天空。','时运不济，守拙藏锋为妙。','阻力当前，静待云散方可图之。','逆水行舟，不进亦不可硬撑。']},
+    {min:1, label:'大凶',cls:'f-daxiong',say:['山雨欲来，宜守不宜攻，静待云开。','签面大凶，万事退避，明日再卜为宜。','天意暂不予，此事强求必伤其身。','黑云蔽月，唯有按兵不动方得保全。','凶兆当头，收心敛性，以待天时。']},
+  ];
+  function fortuneTier(pct){ for(const f of FORTUNE){ if(pct>=f.min) return f; } return FORTUNE[FORTUNE.length-1]; }
+  function fortuneFor(pct){ const f=fortuneTier(pct); return {label:f.label, cls:f.cls, saying:f.say[Math.floor(Math.random()*f.say.length)]}; }
   function luckRoll(text){
-    if(!settingOn('luckBias')) return {pct:1+Math.floor(Math.random()*100), flavor:null, tagset:{}};
+    if(!settingOn('luckBias')) return {pct:1+Math.floor(Math.random()*100), safe:false, tagset:{}};
     const norm=normalizeLuck(text);
-    if(!norm) return {pct:1+Math.floor(Math.random()*100), flavor:null, tagset:{}};
+    if(!norm) return {pct:1+Math.floor(Math.random()*100), safe:false, tagset:{}};
     for(const w of SAFE_BLOCK){ if(norm.indexOf(w)>=0)
-      return {pct:1+Math.floor(Math.random()*100), flavor:'💛 无论多难都会过去，找信任的人聊聊，或拨打心理援助热线，你很重要。', tagset:{}}; }
+      return {pct:1+Math.floor(Math.random()*100), safe:true, safeMsg:'💛 无论多难都会过去，找信任的人聊聊，或拨打心理援助热线，你很重要。', tagset:{}}; }
     let raw=50, tagSum={}, tagset={daily:false,effort:false,greed:false,absurd:false}, used=[];
     for(const e of LUCK_SORT){
       const w=e[0], wt=e[1], tag=e[2];
@@ -793,14 +827,14 @@
       if(sign>0) tagset[tag]=true;
     }
     const fb=featureBias(norm); raw+=fb;
-    if(used.length===0 && fb===0) return {pct:1+Math.floor(Math.random()*100), flavor:null, tagset:{}};   // 公平兜底
+    if(used.length===0 && fb===0) return {pct:1+Math.floor(Math.random()*100), safe:false, tagset:{}};   // 公平兜底
     if(AMP.some(a=>norm.indexOf(a)>=0)) raw=50+(raw-50)*1.3;
     const mean=Math.max(6,Math.min(94,raw));
     let pct;
     if(Math.random()<0.05) pct=1+Math.floor(Math.random()*100);          // 5% 纯随机保底
     else { const r=(Math.random()+Math.random())/2; pct=Math.round(mean+(r-0.5)*2*24); }
     pct=Math.max(1,Math.min(100,pct));
-    return {pct, flavor: settingOn('luckFlavor')?flavorFor(mean,pct):null, tagset};
+    return {pct, safe:false, tagset};
   }
 
   /* ====================== XP & 升级 ====================== */
@@ -842,6 +876,11 @@
       if(cnt>=2&&r.every(x=>x===1)) s.ev_snake=true;
       if(cnt>=3&&allSame) s.ev_baozi=true;
       if(cnt===6&&r.reduce((a,b)=>a+b,0)>=34) s.ev_full34=true;
+      // 🎲 牌型计数（多骰）
+      if(cnt>=3&&allSame) s.d6_baozi_count=(s.d6_baozi_count||0)+1;            // 豹子
+      if(cnt===6&&r.every(x=>x===6)) s.d6_allsix_count=(s.d6_allsix_count||0)+1; // 六六大顺
+      if(cnt>=2&&r.every(x=>x===1)) s.d6_snake_count=(s.d6_snake_count||0)+1;    // 蛇眼
+      if(cnt>=3){ const sset=Array.from(new Set(r)); if(sset.length===cnt && (Math.max.apply(null,r)-Math.min.apply(null,r))===cnt-1) s.d6_shunzi_count=(s.d6_shunzi_count||0)+1; } // 顺子
     } else if(type==='d20'){
       s.d20_total++;
       if(s.d20_faces&&val>=1&&val<=20) s.d20_faces[val-1]++;
@@ -864,6 +903,10 @@
       if(tg.greed) s.ev_wish_greed=true;
       if(tg.effort&&val>=80) s.ev_effort_high=true;
       if(tg.daily){ s.luck_daily_wish=(s.luck_daily_wish||0)+1; if(val>=90) s.ev_daily_super=true; }
+      // 🎋 愿望类型计数（优先级：不可能 > 大 > 小）
+      if(tg.absurd) s.luck_wish_impossible=(s.luck_wish_impossible||0)+1;
+      else if(tg.greed) s.luck_wish_big=(s.luck_wish_big||0)+1;
+      else if(tg.daily||tg.effort) s.luck_wish_small=(s.luck_wish_small||0)+1;
     }
   }
   function evalAchievements(){
@@ -1082,18 +1125,22 @@
       const ev=(document.getElementById('luck-input').value||'').trim(), day=todayStr();
       const res=luckRoll(ev); const n=res.pct;
       tubeSvg.classList.remove('shake-tube'); void tubeSvg.offsetWidth; tubeSvg.classList.add('shake-tube');
+      const ft = res.safe ? null : fortuneFor(n);
+      const sayLine = res.safe ? res.safeMsg : (ft?ft.saying:'');
       setTimeout(()=>{ vibrate(30);   // 摇动途中，签掉落到下方
         if(ev){ save.luckAsked[day]=save.luckAsked[day]||{}; save.luckAsked[day][ev]=n; }
         resultBox.innerHTML='<div class="luck-col">'
           +'<div class="luck-stick" id="luckStick"><img class="stick-img" src="assets/skins/stick.webp" alt="签"></div>'
-          +'<p class="luck-tip" id="luckTip">👆 轻触签子，揭晓成功率</p>'
-          +'<span class="pct-chip" id="pctChip">'+n+'%</span>'
-          +(res.flavor?'<p class="luck-flavor" id="luckFlavor" style="display:none">'+res.flavor+'</p>':'')+'</div>';
+          +'<p class="luck-tip" id="luckTip">👆 轻触签子，揭晓签文</p>'
+          +'<div class="fortune" id="fortuneBox" style="display:none">'
+          +(ft?'<div class="ft-label '+ft.cls+'">'+ft.label+'</div>':'')
+          +'<div class="ft-pct">成功率 '+n+'%</div>'
+          +(sayLine?'<p class="ft-say">'+sayLine+'</p>':'')
+          +'</div></div>';
         const ls=document.getElementById('luckStick');
         ls.onclick=function(){
-          const c=document.getElementById('pctChip'); if(c) c.style.display='inline-block';
-          const t=document.getElementById('luckTip'); if(t) t.style.display='none';
-          const f=document.getElementById('luckFlavor'); if(f) f.style.display='block'; };
+          const fb=document.getElementById('fortuneBox'); if(fb) fb.style.display='flex';
+          const t=document.getElementById('luckTip'); if(t) t.style.display='none'; };
         ls.animate([                                  // 由小变大从筒里飞到下方（JS 动画，稳定可见）
           {transform:'translateY(-150px) scale(.18) rotate(-12deg)', opacity:0, offset:0},
           {transform:'translateY(8px) scale(1.05) rotate(2deg)', opacity:1, offset:.55},
@@ -1166,7 +1213,6 @@
       '</div>'
     ).join('')
     + '<h3 class="stats-cat">📈 数据图谱</h3>' + renderCharts()
-    + '<h3 class="stats-cat">⚙️ 设置</h3>' + renderSettings()
     + '<h3 class="stats-cat">🗄️ 数据管理</h3>'
     + '<div class="data-tools"><button class="dt-btn" onclick="openBackup(\'export\')">⬆️ 导出备份码</button><button class="dt-btn warn" onclick="openBackup(\'import\')">⬇️ 导入备份码</button></div>'
     + '<p class="sm-tip" style="margin-top:2px">换机或重装前先导出备份码，粘到微信/备忘录即可保存；新设备粘回导入即可恢复全部记录。</p>';
@@ -1201,6 +1247,11 @@
     if(f6.some(x=>x>0)){ for(let i=0;i<6;i++){ h+='<div class="drow"><span class="k">'+(i+1)+'</span><div class="track"><div class="fill" style="width:'+(f6[i]/m6*100)+'%"></div></div><span class="v">'+f6[i]+'</span></div>'; } }
     else h+='<p class="chart-empty">还没有掷过 D6</p>';
     h+='</div>';
+    // 🎲 D6 牌型（多骰）
+    h+='<div class="chart-box"><div class="chart-h"><span class="chart-t">🎲 D6 牌型</span><span class="chart-sub">多颗同投</span></div>';
+    const pats=[['豹子',s.d6_baozi_count||0,'≥3 颗点数全同'],['顺子',s.d6_shunzi_count||0,'≥3 颗连号'],['六六大顺',s.d6_allsix_count||0,'6 颗全 6'],['蛇眼',s.d6_snake_count||0,'≥2 颗全 1']];
+    h+='<div class="pat-grid">'+pats.map(p=>'<div class="pat" title="'+p[2]+'"><div class="pat-n">'+p[1]+'</div><div class="pat-l">'+p[0]+'</div></div>').join('')+'</div>';
+    h+='</div>';
     // 🎯 D20 点数分布（竖条 20）
     h+='<div class="chart-box"><div class="chart-h"><span class="chart-t">🎯 D20 点数分布</span><span class="chart-sub">'+s.d20_total+' 次</span></div>';
     const f20=s.d20_faces||[], m20=Math.max(1,...(f20.length?f20:[1]));
@@ -1215,6 +1266,14 @@
     if(lb.some&&lb.some(x=>x>0)){ for(let i=0;i<10;i++){ h+='<div class="drow"><span class="k">'+(i*10+1)+'-'+((i+1)*10)+'</span><div class="track"><div class="fill" style="width:'+(lb[i]/ml*100)+'%"></div></div><span class="v">'+lb[i]+'</span></div>'; } }
     else h+='<p class="chart-empty">还没有抽过气运</p>';
     h+='</div>';
+    // 🎋 愿望类型（语义识别）
+    h+='<div class="chart-box"><div class="chart-h"><span class="chart-t">🎋 愿望类型</span><span class="chart-sub">天机识人心</span></div>';
+    const wt=[['小愿望',s.luck_wish_small||0,'#e0b052'],['大愿望',s.luck_wish_big||0,'#d98a3a'],['不可能的愿望',s.luck_wish_impossible||0,'#9c3b2c']];
+    const wmax=Math.max(1,wt[0][1],wt[1][1],wt[2][1]), wtot=wt[0][1]+wt[1][1]+wt[2][1];
+    if(wtot>0){ h+=wt.map(w=>'<div class="drow"><span class="k" style="width:84px;text-align:left">'+w[0]+'</span><div class="track"><div class="fill" style="width:'+(w[1]/wmax*100)+'%;background:linear-gradient(90deg,'+w[2]+'88,'+w[2]+')"></div></div><span class="v">'+w[1]+'</span></div>').join('')
+        +'<p class="chart-note">小=日常/努力 · 大=贪心暴富 · 不可能=毁天灭地级宏愿（输入内容才会被识别归类）</p>'; }
+    else h+='<p class="chart-empty">写下愿望再抽签，天机才能识别其分量</p>';
+    h+='</div>';
     return h;
   }
 
@@ -1228,12 +1287,14 @@
     return '<div class="ach-cell'+(un?' on':'')+'">'+trophySVG(un)+
       '<p class="ach-name">'+(un?'【'+a.name+'】':'？？？')+'</p>'+
       '<p class="ach-cond">'+a.cond+'</p>'+prog+'</div>'; }
+  const achCollapsed={};
+  window.toggleAchCat=function(c){ achCollapsed[c]=!achCollapsed[c]; renderAchWall(); };
   function renderAchWall(){
     let html='';
     for(const c of CATS_ORDER){ const items=ACHIEVEMENTS.filter(a=>a.cat===c);
-      const got=items.filter(a=>save.ach[a.key]).length;
-      html+='<div class="ach-cat"><span>'+CATLABEL[c]+'</span><span class="ach-cat-n">'+got+' / '+items.length+'</span></div>';
-      html+='<div class="ach-grid">'+items.map(cell).join('')+'</div>'; }
+      const got=items.filter(a=>save.ach[a.key]).length, open=!achCollapsed[c];
+      html+='<button class="ach-cat" onclick="toggleAchCat(\''+c+'\')"><span class="ach-cat-l"><span class="ach-chev'+(open?'':' col')+'">▾</span>'+CATLABEL[c]+'</span><span class="ach-cat-n">'+got+' / '+items.length+'</span></button>';
+      html+='<div class="ach-grid'+(open?'':' hidden')+'">'+items.map(cell).join('')+'</div>'; }
     document.getElementById('trophy-wall').innerHTML=html;
     const tot=document.getElementById('ach-total'); if(tot) tot.textContent=unlockedCount()+' / '+ACHIEVEMENTS.length;
   }
@@ -1320,7 +1381,7 @@
     if(type==='d6'){ const r=extra.results||[val]; const sum=r.reduce((a,b)=>a+b,0);
       return {tag:'D6 骰子',big:r.length>1?String(sum):String(r[0]),sub:r.length>1?r.join(' + '):'点数'}; }
     if(type==='d20') return {tag:'D20 骰子',big:String(val),sub:val===20?'大成功！':(val===1?'大失败…':'命运点数')};
-    if(type==='luck') return {tag:'气运抽签',big:val+'%',sub:(extra&&extra.ev)?('所问：'+extra.ev):'今日成功率'};
+    if(type==='luck') return {tag:'气运抽签',big:fortuneTier(val).label,sub:(extra&&extra.ev)?('所问：'+extra.ev+' · '+val+'%'):('成功率 '+val+'%')};
     return null;
   }
   function rr(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
