@@ -8,17 +8,8 @@ dist/
 # 字体构建输入（仅子集化后的 assets/fonts/*.woff2 入库）
 /fonts/
 src.css
-骰它-v1.0.apk
-shaita-v1.0.apk
-骰它-v1.1.apk
-shaita-v1.1.apk
-骰它-v1.2.apk
-shaita-v1.2.apk
-骰它-v1.3.apk
-shaita-v1.3.apk
-骰它-v1.4.apk
-shaita-v1.4.apk
-骰它-v1.5.apk
-shaita-v1.5.apk
-骰它-v1.6.apk
-shaita-v1.6.apk
+# 安装包：旧版本不入库，仅跟踪当前版本（安卓）
+*.apk
+*.ipa
+!骰它-安卓-v1.8.apk
+!shaita-android-v1.8.apk
