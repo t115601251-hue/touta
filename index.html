@@ -521,7 +521,7 @@
 
         <div class="mb-3 mt-10 flex items-baseline justify-between">
           <h3 class="font-song text-2xl font-black tracking-widest">成就殿堂</h3>
-          <span id="ach-total" class="font-roman text-sm text-ink-soft">0 / 71</span>
+          <span id="ach-total" class="font-roman text-sm text-ink-soft">0 / 100</span>
         </div>
         <div id="trophy-wall" class="flex flex-col"></div>
         <div class="h-6"></div>
@@ -691,7 +691,7 @@
     {key:'a_ach10',cat:'meta',name:'成就萌新',cond:'解锁 10 个成就',f:(s,lv,ac)=>ac>=10},
     {key:'a_ach25',cat:'meta',name:'成就猎人',cond:'解锁 25 个成就',f:(s,lv,ac)=>ac>=25},
     {key:'a_peek10',cat:'meta',name:'强迫症犯了',cond:'一天内反复查看数据/成就 10 次以上',f:s=>s.page_peek_count>=10},
-    {key:'a_achall',cat:'meta',name:'全图鉴大佬',cond:'解锁全部成就',f:(s,lv,ac)=>ac>=70},
+    {key:'a_achall',cat:'meta',name:'全图鉴大佬',cond:'解锁全部成就',f:(s,lv,ac)=>ac>=99},
     // ⏰ 习惯 · 里程碑
     {key:'a_rolls100',cat:'habit',name:'无情的无理取闹',cond:'累计投掷 100 次',f:s=>s.total_rolls>=100},
     {key:'a_rolls1000',cat:'habit',name:'千锤百炼',cond:'累计投掷 1,000 次',f:s=>s.total_rolls>=1000},
@@ -704,6 +704,41 @@
     {key:'a_today100',cat:'habit',name:'今日大忙人',cond:'单日投掷满 100 次',f:s=>s.today_count>=100},
     {key:'a_speed30',cat:'habit',name:'手速狂魔',cond:'1 分钟内投掷 30 次',f:s=>s.ev_speed},
     {key:'a_allmethods',cat:'habit',name:'四海为家',cond:'四种玩法各玩过一次',f:s=>s.methods.coin&&s.methods.d6&&s.methods.d20&&s.methods.luck},
+    // ========== 凑齐 100 · 扩充成就（各类补齐，更均衡）==========
+    // 🪙 抛硬币 +7
+    {key:'a_coin50',cat:'coin',name:'小试牛刀',cond:'抛硬币累计 50 次',f:s=>s.coin_total>=50},
+    {key:'a_coin200',cat:'coin',name:'抛了又抛',cond:'抛硬币累计 200 次',f:s=>s.coin_total>=200},
+    {key:'a_coin2000',cat:'coin',name:'硬币之神',cond:'抛硬币累计 2,000 次',f:s=>s.coin_total>=2000},
+    {key:'a_heads500',cat:'coin',name:'正面狂魔',cond:'累计掷出 500 次正面',f:s=>s.heads>=500},
+    {key:'a_tails500',cat:'coin',name:'反面信徒',cond:'累计掷出 500 次反面',f:s=>s.tails>=500},
+    {key:'a_face15',cat:'coin',name:'十五连同面',cond:'连续 15 次同一面',f:s=>s.coin_max_streak>=15},
+    {key:'a_cointoday50',cat:'coin',name:'今日豪赌',cond:'单日抛硬币 50 次',f:s=>s.coin_today>=50},
+    // 🎲 D6 +6
+    {key:'a_d6_100',cat:'d6',name:'骰海初航',cond:'D6 累计投掷 100 次',f:s=>s.d6_total>=100},
+    {key:'a_d6_2000',cat:'d6',name:'骰不离手',cond:'D6 累计投掷 2,000 次',f:s=>s.d6_total>=2000},
+    {key:'a_baozi10',cat:'d6',name:'豹子专业户',cond:'累计掷出 10 次豹子',f:s=>(s.d6_baozi_count||0)>=10},
+    {key:'a_shunzi5',cat:'d6',name:'顺其自然',cond:'累计掷出 5 次顺子',f:s=>(s.d6_shunzi_count||0)>=5},
+    {key:'a_d6sum10000',cat:'d6',name:'点数泥石流',cond:'D6 累计点数和达 10,000',f:s=>s.d6_sum_total>=10000},
+    {key:'a_six500',cat:'d6',name:'六到飞起',cond:'累计掷出 500 个 6',f:s=>s.d6_six_count>=500},
+    // 🎯 D20 +7
+    {key:'a_d20_50',cat:'d20',name:'二十面初体验',cond:'D20 累计投掷 50 次',f:s=>s.d20_total>=50},
+    {key:'a_d20_1000',cat:'d20',name:'二十面の王',cond:'D20 累计投掷 1,000 次',f:s=>s.d20_total>=1000},
+    {key:'a_ones50',cat:'d20',name:'深渊之主',cond:'累计掷出 50 次 1',f:s=>s.d20_ones>=50},
+    {key:'a_twenties50',cat:'d20',name:'大成功专卖店',cond:'累计掷出 50 次 20',f:s=>s.d20_twenties>=50},
+    {key:'a_d20one3',cat:'d20',name:'天崩地裂',cond:'连续 3 次掷出 1',f:s=>s.d20_one_max_streak>=3},
+    {key:'a_d20twenty3',cat:'d20',name:'天命所归',cond:'连续 3 次掷出 20',f:s=>s.d20_twenty_max_streak>=3},
+    {key:'a_icefire50',cat:'d20',name:'冰火淬炼',cond:'1 和 20 各掷出 ≥50 次',f:s=>s.d20_ones>=50&&s.d20_twenties>=50},
+    // 📈 等级 & 收集 +4
+    {key:'a_lv40',cat:'meta',name:'不惑天命',cond:'达到 LV.40',f:(s,lv)=>lv>=40},
+    {key:'a_lv60',cat:'meta',name:'花甲掷者',cond:'达到 LV.60',f:(s,lv)=>lv>=60},
+    {key:'a_lv75',cat:'meta',name:'古稀将至',cond:'达到 LV.75',f:(s,lv)=>lv>=75},
+    {key:'a_ach50',cat:'meta',name:'成就收藏家',cond:'解锁 50 个成就',f:(s,lv,ac)=>ac>=50},
+    // ⏰ 习惯 +5
+    {key:'a_rolls500',cat:'habit',name:'五百投',cond:'累计投掷 500 次',f:s=>s.total_rolls>=500},
+    {key:'a_rolls5000',cat:'habit',name:'五千投',cond:'累计投掷 5,000 次',f:s=>s.total_rolls>=5000},
+    {key:'a_days14',cat:'habit',name:'半月不辍',cond:'连续 14 天投掷',f:s=>s.streak_days>=14},
+    {key:'a_days100',cat:'habit',name:'百日筑基',cond:'累计 100 天有投掷',f:s=>s.days_count>=100},
+    {key:'a_night30',cat:'habit',name:'深夜恶魔',cond:'累计 0–4 点投掷 30 次',f:s=>s.night_rolls>=30},
   ];
   const ACH={}; ACHIEVEMENTS.forEach(a=>ACH[a.key]=a);
   const CATS_ORDER=['coin','d6','d20','luck','meta','habit'];
@@ -720,7 +755,13 @@
     a_luck100total:s=>[s.luck_total,100], a_luckq10:s=>[s.luck_q_max,10], a_blocked5:s=>[s.luck_blocked,5],
     a_high5:s=>[s.luck_high_count,5], a_low5:s=>[s.luck_low_count,5], a_luck200:s=>[s.luck_total,200],
     a_lv5:(s,lv)=>[lv,5], a_lv10:(s,lv)=>[lv,10], a_lv20:(s,lv)=>[lv,20], a_lv30:(s,lv)=>[lv,30], a_lv50:(s,lv)=>[lv,50], a_lv90:(s,lv)=>[lv,90], a_lv100:(s,lv)=>[lv,100],
-    a_ach10:(s,lv,ac)=>[ac,10], a_ach25:(s,lv,ac)=>[ac,25], a_achall:(s,lv,ac)=>[ac,70], a_peek10:s=>[s.page_peek_count,10], a_daily10:s=>[s.luck_daily_wish||0,10],
+    a_ach10:(s,lv,ac)=>[ac,10], a_ach25:(s,lv,ac)=>[ac,25], a_achall:(s,lv,ac)=>[ac,99], a_peek10:s=>[s.page_peek_count,10], a_daily10:s=>[s.luck_daily_wish||0,10],
+    // 凑齐 100 的新成就进度
+    a_coin50:s=>[s.coin_total,50], a_coin200:s=>[s.coin_total,200], a_coin2000:s=>[s.coin_total,2000], a_heads500:s=>[s.heads,500], a_tails500:s=>[s.tails,500], a_face15:s=>[s.coin_max_streak,15], a_cointoday50:s=>[s.coin_today,50],
+    a_d6_100:s=>[s.d6_total,100], a_d6_2000:s=>[s.d6_total,2000], a_baozi10:s=>[s.d6_baozi_count||0,10], a_shunzi5:s=>[s.d6_shunzi_count||0,5], a_d6sum10000:s=>[s.d6_sum_total,10000], a_six500:s=>[s.d6_six_count,500],
+    a_d20_50:s=>[s.d20_total,50], a_d20_1000:s=>[s.d20_total,1000], a_ones50:s=>[s.d20_ones,50], a_twenties50:s=>[s.d20_twenties,50], a_d20one3:s=>[s.d20_one_max_streak,3], a_d20twenty3:s=>[s.d20_twenty_max_streak,3], a_icefire50:s=>[Math.min(s.d20_ones,s.d20_twenties),50],
+    a_lv40:(s,lv)=>[lv,40], a_lv60:(s,lv)=>[lv,60], a_lv75:(s,lv)=>[lv,75], a_ach50:(s,lv,ac)=>[ac,50],
+    a_rolls500:s=>[s.total_rolls,500], a_rolls5000:s=>[s.total_rolls,5000], a_days14:s=>[s.streak_days,14], a_days100:s=>[s.days_count,100], a_night30:s=>[s.night_rolls,30],
     a_rolls100:s=>[s.total_rolls,100], a_rolls1000:s=>[s.total_rolls,1000], a_rolls10000:s=>[s.total_rolls,10000],
     a_days3:s=>[s.streak_days,3], a_days7:s=>[s.streak_days,7], a_days30:s=>[s.days_count,30],
     a_night:s=>[s.night_rolls,10], a_morning:s=>[s.morning_rolls,10], a_today100:s=>[s.today_count,100],
