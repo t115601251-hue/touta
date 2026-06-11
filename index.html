@@ -138,7 +138,8 @@
     .fortune{ display:flex; flex-direction:column; align-items:center; gap:4px; animation:pop .42s cubic-bezier(.2,1.45,.4,1); }
     .ft-label{ font-family:"Noto Serif SC",serif; font-weight:900; font-size:2.3rem; letter-spacing:.16em; line-height:1.1; padding:3px 22px; border-radius:13px;
       box-shadow:0 3px 9px -3px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.25); }
-    .ft-pct{ font-family:"Cinzel",serif; font-size:.8rem; letter-spacing:.05em; color:#8c7f63; }
+    .ft-pct{ display:flex; align-items:baseline; gap:7px; margin-top:2px; font-family:"Noto Serif SC",serif; font-size:.98rem; font-weight:700; color:#5a4326; }
+    .ft-pct b{ font-family:"Cinzel",serif; font-weight:700; font-size:1.85rem; line-height:1; color:#9c3b2c; letter-spacing:.02em; text-shadow:0 1px 0 rgba(255,250,230,.7); }
     .ft-say{ margin-top:5px; max-width:284px; text-align:center; font-family:"Noto Serif SC",serif; font-size:.86rem; line-height:1.65; color:#5a4326; }
     .f-daji{ color:#fff3d2; background:linear-gradient(180deg,#c8342a,#7e1f15); }
     .f-zhongji{ color:#6e2017; background:linear-gradient(180deg,#f6d98a,#e0b052); }
@@ -521,7 +522,7 @@
 
         <div class="mb-3 mt-10 flex items-baseline justify-between">
           <h3 class="font-song text-2xl font-black tracking-widest">成就殿堂</h3>
-          <span id="ach-total" class="font-roman text-sm text-ink-soft">0 / 100</span>
+          <span id="ach-total" class="font-roman text-sm text-ink-soft">0 / 110</span>
         </div>
         <div id="trophy-wall" class="flex flex-col"></div>
         <div class="h-6"></div>
@@ -680,6 +681,17 @@
     {key:'a_effort_high',cat:'luck',name:'天道酬勤',cond:'努力类愿望摇出 ≥80%',f:s=>s.ev_effort_high},
     {key:'a_absurd_high',cat:'luck',name:'逆天改命',cond:'离谱宏愿竟摇出 ≥80%',f:s=>s.ev_absurd_high},
     {key:'a_absurd_low',cat:'luck',name:'白日做梦',cond:'离谱宏愿摇出 ≤5%',f:s=>s.ev_absurd_low},
+    // 🎴 专属愿望（彩蛋·专属概率）
+    {key:'a_sw_love',cat:'luck',name:'骰它の真爱粉',cond:'对「骰它」许愿（专属 100%）',f:s=>!!(s.sw&&s.sw.love)},
+    {key:'a_sw_villain',cat:'luck',name:'反派の宣言',cond:'执意「毁灭世界」（专属 1%）',f:s=>!!(s.sw&&s.sw.villain)},
+    {key:'a_sw_study',cat:'luck',name:'好学生',cond:'许愿「好好学习/天天向上」（专属 99%）',f:s=>!!(s.sw&&s.sw.study)},
+    {key:'a_sw_heart',cat:'luck',name:'心诚则灵',cond:'许愿「心想事成/万事如意」（专属 88%）',f:s=>!!(s.sw&&s.sw.heart)},
+    {key:'a_sw_fate',cat:'luck',name:'中二之魂',cond:'「我命由我不由天」（专属 77%）',f:s=>!!(s.sw&&s.sw.fate)},
+    {key:'a_sw_peace',cat:'luck',name:'圣母心',cond:'许愿「世界和平」（专属 50%）',f:s=>!!(s.sw&&s.sw.peace)},
+    {key:'a_sw_ouhuang',cat:'luck',name:'欧皇认证',cond:'自称「欧皇」许愿（专属 99%）',f:s=>!!(s.sw&&s.sw.ouhuang)},
+    {key:'a_sw_feiqiu',cat:'luck',name:'非酋实锤',cond:'自认「非酋」许愿（专属 2%）',f:s=>!!(s.sw&&s.sw.feiqiu)},
+    {key:'a_sw_rich',cat:'luck',name:'暴富の幻梦',cond:'许愿「一夜暴富」（专属 6%）',f:s=>!!(s.sw&&s.sw.rich)},
+    {key:'a_sw_immortal',cat:'luck',name:'求仙问道',cond:'许愿「长生不老」（专属 3%）',f:s=>!!(s.sw&&s.sw.immortal)},
     // 📈 等级 & 收集
     {key:'a_lv5',cat:'meta',name:'初出茅庐',cond:'达到 LV.5',f:(s,lv)=>lv>=5},
     {key:'a_lv10',cat:'meta',name:'脱离新手村',cond:'达到 LV.10',f:(s,lv)=>lv>=10},
@@ -691,7 +703,7 @@
     {key:'a_ach10',cat:'meta',name:'成就萌新',cond:'解锁 10 个成就',f:(s,lv,ac)=>ac>=10},
     {key:'a_ach25',cat:'meta',name:'成就猎人',cond:'解锁 25 个成就',f:(s,lv,ac)=>ac>=25},
     {key:'a_peek10',cat:'meta',name:'强迫症犯了',cond:'一天内反复查看数据/成就 10 次以上',f:s=>s.page_peek_count>=10},
-    {key:'a_achall',cat:'meta',name:'全图鉴大佬',cond:'解锁全部成就',f:(s,lv,ac)=>ac>=99},
+    {key:'a_achall',cat:'meta',name:'全图鉴大佬',cond:'解锁全部成就',f:(s,lv,ac)=>ac>=109},
     // ⏰ 习惯 · 里程碑
     {key:'a_rolls100',cat:'habit',name:'无情的无理取闹',cond:'累计投掷 100 次',f:s=>s.total_rolls>=100},
     {key:'a_rolls1000',cat:'habit',name:'千锤百炼',cond:'累计投掷 1,000 次',f:s=>s.total_rolls>=1000},
@@ -755,7 +767,7 @@
     a_luck100total:s=>[s.luck_total,100], a_luckq10:s=>[s.luck_q_max,10], a_blocked5:s=>[s.luck_blocked,5],
     a_high5:s=>[s.luck_high_count,5], a_low5:s=>[s.luck_low_count,5], a_luck200:s=>[s.luck_total,200],
     a_lv5:(s,lv)=>[lv,5], a_lv10:(s,lv)=>[lv,10], a_lv20:(s,lv)=>[lv,20], a_lv30:(s,lv)=>[lv,30], a_lv50:(s,lv)=>[lv,50], a_lv90:(s,lv)=>[lv,90], a_lv100:(s,lv)=>[lv,100],
-    a_ach10:(s,lv,ac)=>[ac,10], a_ach25:(s,lv,ac)=>[ac,25], a_achall:(s,lv,ac)=>[ac,99], a_peek10:s=>[s.page_peek_count,10], a_daily10:s=>[s.luck_daily_wish||0,10],
+    a_ach10:(s,lv,ac)=>[ac,10], a_ach25:(s,lv,ac)=>[ac,25], a_achall:(s,lv,ac)=>[ac,109], a_peek10:s=>[s.page_peek_count,10], a_daily10:s=>[s.luck_daily_wish||0,10],
     // 凑齐 100 的新成就进度
     a_coin50:s=>[s.coin_total,50], a_coin200:s=>[s.coin_total,200], a_coin2000:s=>[s.coin_total,2000], a_heads500:s=>[s.heads,500], a_tails500:s=>[s.tails,500], a_face15:s=>[s.coin_max_streak,15], a_cointoday50:s=>[s.coin_today,50],
     a_d6_100:s=>[s.d6_total,100], a_d6_2000:s=>[s.d6_total,2000], a_baozi10:s=>[s.d6_baozi_count||0,10], a_shunzi5:s=>[s.d6_shunzi_count||0,5], a_d6sum10000:s=>[s.d6_sum_total,10000], a_six500:s=>[s.d6_six_count,500],
@@ -781,7 +793,7 @@
       page_peek_date:null,page_peek_count:0,
       luck_daily_wish:0,ev_wish_absurd:false,ev_wish_greed:false,ev_effort_high:false,ev_absurd_high:false,ev_absurd_low:false,ev_daily_super:false,
       d6_baozi_count:0,d6_shunzi_count:0,d6_allsix_count:0,d6_snake_count:0,
-      luck_wish_small:0,luck_wish_big:0,luck_wish_impossible:0 },
+      luck_wish_small:0,luck_wish_big:0,luck_wish_impossible:0, sw:{} },
     inv:{skins:['default'],trinkets:[],current_skin:'default',activeRow:0},
     settings:{luckBias:true,luckFlavor:true},
     luckAsked:{} };
@@ -831,18 +843,44 @@
     ['回家',16,'daily'],['周末',18,'daily'],['放空',18,'daily'],['吃瓜',16,'daily'],['睡到自然醒',24,'daily'],['假期',20,'daily'],['旅行',16,'daily'],['见朋友',14,'daily'],['喝杯奶茶',24,'daily'],['看日落',14,'daily'],['撸猫',18,'daily'],['吸猫',18,'daily'],['遛狗',16,'daily'],['不上学',16,'daily'],['打球',14,'daily'],['玩会',16,'daily'],
     ['谈恋爱',8,'effort'],['有对象',8,'effort'],['恋爱',8,'effort'],['交到朋友',10,'effort'],
     // 🌧 倒霉事（直接许=降运；被「别/不」否定=祝福，升运）
-    ['生病',16,'misfortune'],['感冒',14,'misfortune'],['发烧',14,'misfortune'],['挂科',18,'misfortune'],['挂掉',14,'misfortune'],['分手',16,'misfortune'],['失恋',16,'misfortune'],['失业',18,'misfortune'],['被裁',18,'misfortune'],['裁员',16,'misfortune'],['迟到',12,'misfortune'],['堵车',12,'misfortune'],['下雨',10,'misfortune'],['加班',16,'misfortune'],['上班',10,'misfortune'],['上学',8,'misfortune'],['变胖',12,'misfortune'],['长胖',12,'misfortune'],['秃头',12,'misfortune'],['破产',20,'misfortune'],['扣钱',14,'misfortune'],['罚款',14,'misfortune'],['倒霉',16,'misfortune'],['出事',16,'misfortune'],['吵架',12,'misfortune'],['失眠',12,'misfortune'],['emo',12,'misfortune'],['报错',12,'misfortune'],['bug',10,'misfortune'],['踩雷',12,'misfortune'],['翻车',14,'misfortune'],['被骂',14,'misfortune']
+    ['生病',16,'misfortune'],['感冒',14,'misfortune'],['发烧',14,'misfortune'],['挂科',18,'misfortune'],['挂掉',14,'misfortune'],['分手',16,'misfortune'],['失恋',16,'misfortune'],['失业',18,'misfortune'],['被裁',18,'misfortune'],['裁员',16,'misfortune'],['迟到',12,'misfortune'],['堵车',12,'misfortune'],['下雨',10,'misfortune'],['加班',16,'misfortune'],['上班',10,'misfortune'],['上学',8,'misfortune'],['变胖',12,'misfortune'],['长胖',12,'misfortune'],['秃头',12,'misfortune'],['破产',20,'misfortune'],['扣钱',14,'misfortune'],['罚款',14,'misfortune'],['倒霉',16,'misfortune'],['出事',16,'misfortune'],['吵架',12,'misfortune'],['失眠',12,'misfortune'],['emo',12,'misfortune'],['报错',12,'misfortune'],['bug',10,'misfortune'],['踩雷',12,'misfortune'],['翻车',14,'misfortune'],['被骂',14,'misfortune'],
+    // 🍵 日常·扩充（生活小事，提升识别率）
+    ['回家',16,'daily'],['到家',16,'daily'],['平安到家',18,'daily'],['睡个好觉',22,'daily'],['好好睡觉',22,'daily'],['吃顿好的',22,'daily'],['吃好吃的',22,'daily'],['喝点小酒',16,'daily'],['看场电影',16,'daily'],['打个盹',18,'daily'],['歇一歇',18,'daily'],['放个假',22,'daily'],['出去走走',16,'daily'],['晒晒太阳',16,'daily'],['喝口水',24,'daily'],['吃口饭',24,'daily'],['抱抱',16,'daily'],['亲亲',14,'daily'],['被表扬',16,'daily'],['被夸',16,'daily'],['心情舒畅',18,'daily'],['一夜好眠',22,'daily'],['天气好',16,'daily'],['不堵车',16,'daily'],['绿灯',14,'daily'],['抢到座位',14,'daily'],['有空位',12,'daily'],
+    // 💪 努力可达·扩充（中等愿望）
+    ['考好成绩',10,'effort'],['考个好成绩',10,'effort'],['顺利毕业',12,'effort'],['顺利上岸',10,'effort'],['面试通过',12,'effort'],['拿到证',10,'effort'],['考到驾照',8,'effort'],['项目上线',8,'effort'],['按时交稿',10,'effort'],['不被退稿',12,'effort'],['谈成生意',6,'effort'],['签下合同',8,'effort'],['顺利转正',10,'effort'],['评上优秀',6,'effort'],['拿到奖金',12,'effort'],['年终奖',12,'effort'],['抢到票',10,'effort'],['抢到优惠',10,'effort'],['顺利还款',8,'effort'],['存够钱',6,'effort'],['攒钱',6,'effort'],['领证',10,'effort'],['顺利结婚',8,'effort'],['顺利分娩',8,'effort'],['宝宝健康',12,'effort'],['戒烟成功',6,'effort'],['戒酒成功',6,'effort'],['养成习惯',8,'effort'],['坚持下去',8,'effort'],['搬新家',10,'effort'],['买到房',2,'effort'],['买到车',4,'effort'],
+    // 💰 贪心·扩充
+    ['一夜成名',30,'greed'],['一夜致富',38,'greed'],['天降巨款',36,'greed'],['钱从天降',34,'greed'],['数钱数到手软',32,'greed'],['躺着也赚钱',32,'greed'],['不上班还有钱',34,'greed'],['日入百万',36,'greed'],['月入百万',34,'greed'],['年入千万',36,'greed'],['一夜翻倍',28,'greed'],['股票涨停',24,'greed'],['一买就涨',26,'greed'],['稳赚不赔',28,'greed'],['空手套',30,'greed'],['坐等收钱',30,'greed'],['什么都不做就有钱',38,'greed'],['继承遗产',26,'greed'],['天选之子',22,'greed'],
+    // 🌋 浮夸·扩充
+    ['征服世界',44,'absurd'],['主宰世界',44,'absurd'],['主宰',28,'absurd'],['毁灭一切',46,'absurd'],['毁灭人类',46,'absurd'],['毁天',40,'absurd'],['灭地',40,'absurd'],['永葆青春',34,'absurd'],['青春永驻',34,'absurd'],['万古长青',36,'absurd'],['得道成仙',36,'absurd'],['羽化登仙',36,'absurd'],['撒豆成兵',34,'absurd'],['搬山',26,'absurd'],['填海',26,'absurd'],['隔空取物',30,'absurd'],['无中生有',28,'absurd'],['召唤神龙',32,'absurd'],['一拳超人',30,'absurd'],['力大无穷',26,'absurd'],['刀枪不入',30,'absurd'],['金钟罩',26,'absurd'],['穿墙',26,'absurd'],['时间暂停',34,'absurd'],['时停',28,'absurd'],['预知未来',30,'absurd'],['未卜先知',30,'absurd'],['一夜变天才',34,'absurd'],['秒变学霸',26,'absurd'],['一夜长高',24,'absurd'],['一秒暴瘦',24,'absurd'],['永远不胖',22,'absurd'],['吃不胖',20,'absurd'],
+    // 🌧 倒霉·扩充
+    ['长痘',10,'misfortune'],['爆痘',12,'misfortune'],['脱发',14,'misfortune'],['掉头发',12,'misfortune'],['发际线',12,'misfortune'],['近视',8,'misfortune'],['牙疼',12,'misfortune'],['头疼',10,'misfortune'],['头痛',10,'misfortune'],['阳了',12,'misfortune'],['中招',10,'misfortune'],['社死',14,'misfortune'],['尴尬',8,'misfortune'],['被甩',16,'misfortune'],['被拒',12,'misfortune'],['拒稿',14,'misfortune'],['返工',12,'misfortune'],['延毕',18,'misfortune'],['挂了',12,'misfortune'],['重修',14,'misfortune'],['补考',12,'misfortune'],['降薪',16,'misfortune'],['没钱',14,'misfortune'],['月光',12,'misfortune'],['吃土',12,'misfortune'],['负债',16,'misfortune'],['欠债',16,'misfortune'],['被坑',12,'misfortune'],['受伤',14,'misfortune'],['摔倒',10,'misfortune'],['丢手机',16,'misfortune'],['丢钱',14,'misfortune'],['没网',10,'misfortune'],['没电',10,'misfortune'],['挤地铁',10,'misfortune'],['排队',8,'misfortune'],['被放鸽子',14,'misfortune'],['被放咕咕',14,'misfortune'],
+    // 🧩 高频裸词补漏
+    ['买房',2,'effort'],['买车',4,'effort'],['涨薪',8,'effort'],['脱贫',6,'effort'],['上岸',8,'effort'],['过关',10,'effort'],['中奖',22,'greed'],['发财',24,'greed'],['暴瘦',18,'greed'],['一夜成才',32,'greed'],['躺平躺赢',28,'greed']
   ];
   const LUCK_SORT=LUCK_LEX.slice().sort((a,b)=>b[0].length-a[0].length);
   const NEG=['不想','不要','不会','再也不','千万别','不','别','没','无','勿','拒绝','免得'];
   const AMP=['全世界','全人类','全宇宙','整个世界','所有人','整个','永远','一辈子','千秋','万世','无数','所有','全部','一切','彻底','瞬间'];
   const SAFE_BLOCK=['自杀','自残','轻生','想死','不想活了','不想活','活不下去','结束生命','跳楼','割腕','跳河','上吊','杀了我','杀人','弄死','捅死','报复社会'];
+  // 🎴 专属愿望：命中即用专属概率，并解锁专属成就 [触发词, 专属%, 成就flag]
+  const SPECIAL_WISH=[
+    ['骰它',100,'love'],['我爱骰它',100,'love'],
+    ['毁灭世界',1,'villain'],['毁灭地球',1,'villain'],
+    ['好好学习',99,'study'],['天天向上',99,'study'],
+    ['心想事成',88,'heart'],['万事如意',88,'heart'],
+    ['我命由我不由天',77,'fate'],['逆天改命',77,'fate'],
+    ['世界和平',50,'peace'],
+    ['欧皇',99,'ouhuang'],['我是欧皇',99,'ouhuang'],
+    ['非酋',2,'feiqiu'],['我是非酋',2,'feiqiu'],
+    ['一夜暴富',6,'rich'],
+    ['长生不老',3,'immortal'],['长生不死',3,'immortal'],
+  ].sort((a,b)=>b[0].length-a[0].length);
   function featureBias(norm){
     let b=0;
-    if(/亿|万亿|千万|无数|百万/.test(norm)) b-=14;
-    if(/努力|坚持|复习|练习|加班|认真|拼命|用功|奋斗/.test(norm)) b+=8;
-    if(/今天|明天|这次|一点点|稍微|一下|顺利/.test(norm)) b+=6;
-    const over=Math.max(0,norm.length-12); b-=Math.min(12, Math.round(over*1.5));
+    if(/亿|万亿|千万|无数|百万/.test(norm)) b-=20;
+    if(/全部|所有|全都|统统|永远|一辈子|这辈子/.test(norm)) b-=10;
+    if(/努力|坚持|复习|练习|认真|拼命|用功|奋斗|加油/.test(norm)) b+=10;
+    if(/今天|明天|这次|一点点|稍微|一下|顺利|平安/.test(norm)) b+=8;
+    const over=Math.max(0,norm.length-12); b-=Math.min(14, Math.round(over*1.6));
     return b;
   }
   // 签文吉凶分级 + 云里雾里的高人话术
@@ -863,6 +901,8 @@
     if(!norm) return {pct:1+Math.floor(Math.random()*100), safe:false, tagset:{}};
     for(const w of SAFE_BLOCK){ if(norm.indexOf(w)>=0)
       return {pct:1+Math.floor(Math.random()*100), safe:true, safeMsg:'💛 无论多难都会过去，找信任的人聊聊，或拨打心理援助热线，你很重要。', tagset:{}}; }
+    for(const sp of SPECIAL_WISH){ if(norm.indexOf(sp[0])>=0)   // 🎴 专属愿望 → 专属概率 + 专属成就
+      return {pct:sp[1], safe:false, special:sp[2], tagset:{}}; }
     let raw=50, tagSum={}, tagset={daily:false,effort:false,greed:false,absurd:false}, used=[];
     for(const e of LUCK_SORT){
       const w=e[0], wt=e[1], tag=e[2];
@@ -872,19 +912,19 @@
       const idx=norm.indexOf(w), pre=norm.slice(Math.max(0,idx-4),idx);
       let sign=NEG.some(n=>pre.indexOf(n)>=0)?-1:1;
       const sw=(tag==='daily'||tag==='effort')?wt:-wt;   // 升类正、降类负
-      const n=tagSum[tag]||0, decay=n===0?1:(n===1?0.6:0.3);
+      const n=tagSum[tag]||0, decay=n===0?1:(n===1?0.7:0.4);
       raw += sign*sw*decay; tagSum[tag]=n+1;
       if(sign>0) tagset[tag]=true;
     }
     const fb=featureBias(norm); raw+=fb;
     if(used.length===0 && fb===0) return {pct:1+Math.floor(Math.random()*100), safe:false, tagset:{}};   // 公平兜底
-    if(AMP.some(a=>norm.indexOf(a)>=0)) raw=50+(raw-50)*1.3;
-    const mean=Math.max(6,Math.min(94,raw));
+    if(AMP.some(a=>norm.indexOf(a)>=0)) raw=50+(raw-50)*1.5;        // 程度放大更猛
+    const mean=Math.max(5,Math.min(95,raw));
     let pct;
-    if(Math.random()<0.05) pct=1+Math.floor(Math.random()*100);          // 5% 纯随机保底
-    else { const r=(Math.random()+Math.random())/2; pct=Math.round(mean+(r-0.5)*2*24); }
+    if(Math.random()<0.04) pct=1+Math.floor(Math.random()*100);          // 4% 纯随机保底
+    else { const r=(Math.random()+Math.random())/2; pct=Math.round(mean+(r-0.5)*2*20); }   // 幅度收窄=更显内容
     pct=Math.max(1,Math.min(100,pct));
-    return {pct, safe:false, tagset};
+    return {pct, safe:false, special:null, tagset};
   }
 
   /* ====================== XP & 升级 ====================== */
@@ -957,6 +997,7 @@
       if(tg.absurd) s.luck_wish_impossible=(s.luck_wish_impossible||0)+1;
       else if(tg.greed) s.luck_wish_big=(s.luck_wish_big||0)+1;
       else if(tg.daily||tg.effort) s.luck_wish_small=(s.luck_wish_small||0)+1;
+      if(extra.special){ s.sw=s.sw||{}; s.sw[extra.special]=true; }   // 🎴 专属愿望成就
     }
   }
   function evalAchievements(){
@@ -1185,7 +1226,7 @@
           +(ft?'<span class="stick-label '+tone+'" id="stickLabel">'+ft.label+'</span>':'')+'</div>'
           +'<p class="luck-tip" id="luckTip">👆 轻触签子，揭晓签文</p>'
           +'<div class="fortune" id="fortuneBox" style="display:none">'
-          +'<div class="ft-pct">成功率 '+n+'%</div>'
+          +'<div class="ft-pct">成功率 <b>'+n+'%</b></div>'
           +(sayLine?'<p class="ft-say">'+sayLine+'</p>':'')
           +'</div></div>';
         const ls=document.getElementById('luckStick');
@@ -1198,7 +1239,7 @@
           {transform:'translateY(8px) scale(1.05) rotate(2deg)', opacity:1, offset:.55},
           {transform:'translateY(0) scale(1) rotate(0)', opacity:1, offset:1}
         ],{duration:720, easing:'cubic-bezier(.2,.85,.3,1)'});
-        afterRoll('luck',n,{ev:ev, tagset:res.tagset}); endRoll(); },420);
+        afterRoll('luck',n,{ev:ev, tagset:res.tagset, special:res.special}); endRoll(); },420);
     }
   }
   btn.addEventListener('click', roll);
